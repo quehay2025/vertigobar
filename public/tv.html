@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VÉRTIGO BAR — Pantalla</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css" />
+<link rel="stylesheet" href="tv.css" />
+</head>
+<body>
+<!-- ====== FONDO FX: rejilla neón en perspectiva + horizonte ====== -->
+<div class="fx-bg">
+  <div class="fx-warp"></div>
+  <div class="fx-pulse"></div>
+  <div class="fx-horizon"></div>
+  <div class="fx-grid fx-grid-floor"></div>
+  <div class="fx-grid fx-grid-ceil"></div>
+  <div class="fx-grid-side fx-grid-left"></div>
+  <div class="fx-grid-side fx-grid-right"></div>
+  <div class="fx-vignette"></div>
+  <div class="fx-embers" id="embers"></div>
+</div>
+
+<!-- Filtros SVG para el fuego (feTurbulence: ligero, sin librerías) -->
+<svg class="svg-defs" width="0" height="0" aria-hidden="true">
+  <defs>
+    <filter id="fire-distort" x="-40%" y="-60%" width="180%" height="220%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018 0.05" numOctaves="2" seed="7" result="noise">
+        <animate attributeName="baseFrequency" dur="5s" values="0.018 0.05;0.028 0.08;0.018 0.05" repeatCount="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="22" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="fire-distort-soft" x="-40%" y="-60%" width="180%" height="220%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02 0.06" numOctaves="2" seed="2" result="noise">
+        <animate attributeName="baseFrequency" dur="6s" values="0.02 0.06;0.035 0.09;0.02 0.06" repeatCount="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="14"/>
+    </filter>
+  </defs>
+</svg>
+
+<div class="tv-stage">
+  <div class="tv-wrap">
+
+    <!-- ====== 70% BARRAS ====== -->
+    <main class="tv-main">
+      <header class="tv-head">
+        <div class="brand">
+          <span class="b1">VÉRTIGO</span><span class="b2">·BAR</span>
+        </div>
+        <div class="tv-turbo">
+          <span class="turbo-label">TURBO OVERDRIVE</span>
+          <span class="turbo-total"><b id="totalVotes">0</b> votos</span>
+        </div>
+      </header>
+
+      <div id="bars" class="bars"><!-- barras inyectadas --></div>
+
+      <footer class="tv-ticker">
+        <span class="tk-ico">⚡</span>
+        <span id="ticker" class="tk-text">Escanea el código y vota tu próxima canción</span>
+      </footer>
+    </main>
+
+    <!-- ====== 30% QR + SHOW ====== -->
+    <aside class="tv-side">
+      <div class="side-glow"></div>
+      <h2 class="side-h">ESCANEA<br>PARA VOTAR</h2>
+      <p class="side-sub">Elige la siguiente canción</p>
+      <div class="qr-frame">
+        <div id="qr"></div>
+        <span class="qr-corner tl"></span><span class="qr-corner tr"></span>
+        <span class="qr-corner bl"></span><span class="qr-corner br"></span>
+      </div>
+      <div class="side-url" id="voteUrl">—</div>
+      <div class="side-show">
+        <span class="show-label">PRÓXIMO SHOW</span>
+        <span class="show-name" id="nextShow">—</span>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ====== OVERLAY K.O. / GANADOR ====== -->
+  <div id="ko" class="ko">
+    <div class="ko-inner">
+      <div class="ko-kicker">RONDA CONCLUIDA</div>
+      <div class="ko-word">K.O.</div>
+      <div class="ko-card gpu">
+        <div class="ko-num">1</div>
+        <div class="ko-song">
+          <div class="ko-title" id="koTitle">—</div>
+          <div class="ko-artist" id="koArtist">—</div>
+        </div>
+        <div class="ko-votes"><b id="koVotes">0</b><span>votos</span></div>
+      </div>
+      <div class="ko-sub">GANADOR DE LA NOCHE</div>
+    </div>
+    <canvas id="confetti" class="confetti"></canvas>
+  </div>
+
+  <!-- flashbang -->
+  <div id="flash" class="flash"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="tv.js"></script>
+</body>
+</html>

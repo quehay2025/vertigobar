@@ -1,0 +1,82 @@
+/* =========================================================================
+   VÉRTIGO BAR — Vista Artista
+   ========================================================================= */
+.gate, .panel { position: relative; z-index: 1; max-width: 620px; margin: 0 auto;
+  min-height: 100dvh; padding: 26px 18px calc(26px + env(safe-area-inset-bottom)); }
+.brand { font-size: 1.15rem; } .brand.small { font-size: .95rem; }
+
+/* ---- Acceso ---- */
+.gate { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 16px; }
+.gate-lead { color: var(--text-dim); }
+.gate-form { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 340px; }
+.gate-form input, .add-form input {
+  background: var(--bg-2); border: 1.5px solid var(--line); border-radius: 12px;
+  color: var(--white); padding: 14px; font-family: var(--font); font-size: 1.05rem; outline: none; text-align: center;
+}
+.gate-form input:focus, .add-form input:focus { border-color: var(--orange); box-shadow: var(--glow-orange); }
+.gate-msg { color: #ff5a5a; min-height: 18px; font-size: .9rem; }
+
+/* ---- Panel ---- */
+.panel { display: none; }
+.panel.on { display: block; }
+.a-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.a-total { font-family: var(--font-mono); font-size: .82rem; color: var(--text-dim); }
+.a-total b { color: var(--orange); }
+.a-hint { background: var(--bg-2); border: 1px solid var(--line); border-left: 3px solid var(--orange);
+  border-radius: 10px; padding: 12px 14px; font-size: .88rem; color: var(--text-dim); line-height: 1.4; margin-bottom: 18px; }
+.a-hint b { color: var(--text); }
+.a-section { font-family: var(--font-mono); font-size: .9rem; letter-spacing: 2px; color: var(--orange);
+  margin: 4px 2px 12px; display: flex; align-items: center; gap: 8px; }
+.tag { font-family: var(--font-mono); font-size: .7rem; background: var(--bg-3); border: 1px solid var(--line);
+  color: var(--text-dim); border-radius: 999px; padding: 2px 9px; }
+
+/* Filas activas */
+.ranking { display: flex; flex-direction: column; gap: 12px; }
+.a-row {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  background: var(--grad-panel); border: 1.5px solid var(--line); border-radius: var(--radius);
+  transition: border-color .3s, box-shadow .3s, opacity .4s, transform .4s;
+}
+.a-row.top { border-color: var(--orange); box-shadow: var(--glow-orange); }
+.a-row .rank { font-family: var(--font-mono); font-weight: 900; font-size: 1.5rem; color: var(--orange);
+  width: 30px; text-align: center; flex: 0 0 auto; }
+.a-row.top .rank { text-shadow: var(--glow-orange); }
+.a-row .info { flex: 1; min-width: 0; }
+.a-row .t { font-size: 1.1rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.a-row .a { font-size: .82rem; color: var(--text-dim); }
+.a-row .v { font-family: var(--font-mono); font-weight: 800; font-size: 1.1rem; color: var(--white); flex: 0 0 auto; margin-right: 4px; }
+.a-row .v small { display: block; font-size: .62rem; color: var(--text-dim); font-family: var(--font); font-weight: 500; text-align: right; }
+
+.done-btn {
+  flex: 0 0 auto; border: none; cursor: pointer; border-radius: 12px; padding: 11px 14px;
+  font-family: var(--font); font-weight: 700; font-size: .92rem; color: #042; white-space: nowrap;
+  background: linear-gradient(135deg, #2fff6a, #0a8f2a); box-shadow: 0 0 16px rgba(47,255,106,.4);
+  transition: transform .1s, filter .2s;
+}
+.done-btn:active { transform: scale(.95); }
+.a-row.gone { opacity: 0; transform: translateX(40px); }
+
+/* Vacío */
+.empty { text-align: center; color: var(--text-dim); padding: 24px; font-size: .9rem; }
+
+/* Detalles / agregar / cumplidos */
+.a-more { margin-top: 18px; background: var(--bg-1); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.a-more > summary { cursor: pointer; padding: 14px 16px; font-family: var(--font-mono); font-size: .9rem;
+  letter-spacing: 1px; color: var(--text); list-style: none; display: flex; align-items: center; gap: 8px; }
+.a-more > summary::-webkit-details-marker { display: none; }
+.add-form { display: flex; flex-direction: column; gap: 10px; padding: 0 16px 16px; }
+.donelist { display: flex; flex-direction: column; gap: 10px; padding: 0 16px 16px; }
+.done-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--bg-2);
+  border: 1px solid var(--line); border-radius: 10px; }
+.done-row .info { flex: 1; min-width: 0; }
+.done-row .t { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.done-row .a { font-size: .78rem; color: var(--text-dim); }
+.react-btn { border: 1.5px solid var(--neon); background: transparent; color: var(--neon); cursor: pointer;
+  border-radius: 10px; padding: 9px 12px; font-family: var(--font); font-weight: 700; font-size: .85rem; white-space: nowrap; }
+.react-btn:active { transform: scale(.95); }
+
+.btn.ghost { background: transparent; border: 1.5px solid var(--line); box-shadow: none; color: var(--text); }
+.a-msg { text-align: center; min-height: 18px; margin-top: 14px; font-size: .88rem; color: var(--neon); }
+.a-msg.err { color: #ff5a5a; }
+.a-links { text-align: center; margin-top: 18px; }
+.a-links a { color: var(--text-dim); text-decoration: none; margin: 0 12px; font-size: .82rem; }

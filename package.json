@@ -1,0 +1,21 @@
+{
+  "name": "vertigo-bar",
+  "version": "1.0.0",
+  "description": "Sistema de votacion de canciones en tiempo real para bar - estetica arcade/HUD",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5",
+    "mongoose": "^8.5.1",
+    "nanoid": "^5.0.7",
+    "dotenv": "^16.4.5"
+  }
+}

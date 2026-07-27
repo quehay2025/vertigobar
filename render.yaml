@@ -1,0 +1,14 @@
+# Despliegue en Render (tier gratis con WebSockets persistentes)
+# 1. Sube este repo a GitHub  2. Render > New > Blueprint > selecciona el repo
+services:
+  - type: web
+    name: vertigo-bar
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: ADMIN_KEY
+        sync: false          # define tu clave en el dashboard
+      - key: MONGODB_URI
+        sync: false          # pega tu cadena de MongoDB Atlas (opcional)

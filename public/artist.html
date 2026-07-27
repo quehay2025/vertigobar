@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#050506" />
+<title>VÉRTIGO BAR — Artista</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css" />
+<link rel="stylesheet" href="artist.css" />
+</head>
+<body class="hud-grid">
+
+<!-- Acceso -->
+<section id="gate" class="gate">
+  <div class="brand"><span class="b1">VÉRTIGO</span><span class="b2">·ARTISTA</span></div>
+  <p class="gate-lead">Panel del artista / comediante</p>
+  <form id="keyForm" class="gate-form" autocomplete="off">
+    <input id="keyInput" type="password" placeholder="Clave de artista" />
+    <button class="btn" type="submit">ENTRAR ▸</button>
+  </form>
+  <p id="gateMsg" class="gate-msg"></p>
+</section>
+
+<!-- Panel -->
+<section id="panel" class="panel">
+  <header class="a-head">
+    <div class="brand small"><span class="b1">VÉRTIGO</span><span class="b2">·ARTISTA</span></div>
+    <div class="a-total">CICLO <b id="cycle">0</b> · <b id="total">0</b> votos</div>
+  </header>
+
+  <div class="a-hint">
+    Marca <b>✓ Ya lo hice</b> cuando termines un tema: sale del ranking, se reinician sus puntos
+    y sube el siguiente. Todos podrán votar de nuevo al instante.
+  </div>
+
+  <h3 class="a-section">EN VOTACIÓN <span id="activeCount" class="tag">0</span></h3>
+  <div id="ranking" class="ranking"><!-- filas activas --></div>
+
+  <details class="a-more">
+    <summary>➕ Agregar un tema</summary>
+    <form id="addForm" class="add-form" autocomplete="off">
+      <input id="addTitle" placeholder="Título del tema" />
+      <input id="addArtist" placeholder="Autor / artista (opcional)" />
+      <button class="btn ghost" type="submit">Agregar</button>
+    </form>
+  </details>
+
+  <details class="a-more">
+    <summary>♻️ Temas ya cumplidos <span id="doneCount" class="tag">0</span></summary>
+    <div id="donelist" class="donelist"><!-- filas cumplidas --></div>
+  </details>
+
+  <p id="msg" class="a-msg"></p>
+  <div class="a-links">
+    <a href="/tv" target="_blank">▸ Pantalla TV</a>
+    <a href="/" target="_blank">▸ Vista cliente</a>
+  </div>
+</section>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="artist.js"></script>
+</body>
+</html>

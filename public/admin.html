@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VÉRTIGO BAR — Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css" />
+<style>
+  .adm { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; padding: 28px 20px 60px; }
+  h1 { font-family: var(--font-mono); font-size: 1.6rem; margin-bottom: 4px; }
+  h1 .b2 { color: var(--orange); text-shadow: var(--glow-orange); }
+  .sub { color: var(--text-dim); margin-bottom: 22px; font-size: .9rem; }
+  .card { background: var(--grad-panel); border: 1.5px solid var(--line); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 18px; }
+  .card h2 { font-family: var(--font-mono); font-size: 1rem; color: var(--orange); margin-bottom: 14px; letter-spacing: 1px; }
+  label { display: block; font-size: .78rem; color: var(--text-dim); margin: 10px 0 4px; letter-spacing: 1px; }
+  input { width: 100%; background: var(--bg-2); border: 1.5px solid var(--line); border-radius: 10px; color: var(--white); padding: 11px 13px; font-family: var(--font); font-size: 1rem; outline: none; }
+  input:focus { border-color: var(--orange); box-shadow: var(--glow-orange); }
+  .song-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .row-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .btn.ghost { background: transparent; border: 1.5px solid var(--line); box-shadow: none; color: var(--text); }
+  .btn.danger { background: linear-gradient(135deg, #ff3b3b, #a30000); box-shadow: 0 0 18px rgba(255,59,59,.4); }
+  .status { font-size: .85rem; color: var(--text-dim); margin-top: 10px; min-height: 18px; }
+  .status.ok { color: var(--neon); } .status.err { color: #ff5a5a; }
+  .live-state { font-family: var(--font-mono); font-size: .85rem; }
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .72rem; font-family: var(--font-mono); }
+  .pill.open { background: var(--grad-brand); color: #fff; }
+  .pill.closed { background: #333; color: var(--text-dim); }
+  .links a { color: var(--neon); text-decoration: none; margin-right: 16px; font-size: .85rem; }
+</style>
+</head>
+<body class="hud-grid">
+<div class="adm">
+  <h1><span class="b1">VÉRTIGO</span><span class="b2">·CONTROL</span></h1>
+  <div class="sub">Panel de operador · rondas y votación</div>
+  <div class="links">
+    <a href="/" target="_blank">▸ Vista cliente</a>
+    <a href="/tv" target="_blank">▸ Pantalla TV</a>
+  </div>
+
+  <div class="card">
+    <h2>ESTADO ACTUAL</h2>
+    <div class="live-state" id="live">Cargando…</div>
+  </div>
+
+  <div class="card">
+    <h2>CLAVE DE OPERADOR</h2>
+    <input id="key" type="password" placeholder="ADMIN_KEY" />
+  </div>
+
+  <div class="card">
+    <h2>NUEVA RONDA</h2>
+    <label>Título de la ronda</label>
+    <input id="title" placeholder="Elige la siguiente canción" />
+    <label>Próximo show</label>
+    <input id="nextShow" placeholder="Dj Tech-Mix Live (23:00 HS)" />
+    <label>Canciones (4)</label>
+    <div id="songs"></div>
+    <div class="row-actions">
+      <button class="btn" id="openBtn">▸ ABRIR RONDA</button>
+      <button class="btn ghost" id="resetBtn">↺ Reiniciar votos</button>
+      <button class="btn danger" id="closeBtn">■ CERRAR (K.O.)</button>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+const $ = s => document.querySelector(s);
+const defaults = [
+  ['Rojo','J Balvin'], ['Provenza','Karol G'], ['Despecha','Rosalía'], ['Bizarrap Vol. 53','Bizarrap']
+];
+const songsBox = $('#songs');
+defaults.forEach((d, i) => {
+  const g = document.createElement('div');
+  g.className = 'song-grid';
+  g.innerHTML = `<input data-t="${i}" placeholder="Canción ${i+1}" value="${d[0]}">
+                 <input data-a="${i}" placeholder="Artista" value="${d[1]}">`;
+  songsBox.appendChild(g);
+});
+
+function key() { return $('#key').value.trim(); }
+function setStatus(msg, cls='') { const s = $('#status'); s.textContent = msg; s.className = 'status ' + cls; }
+
+function collectSongs() {
+  return defaults.map((_, i) => ({
+    title: songsBox.querySelector(`[data-t="${i}"]`).value.trim() || `Canción ${i+1}`,
+    artist: songsBox.querySelector(`[data-a="${i}"]`).value.trim()
+  }));
+}
+
+$('#openBtn').onclick = () => {
+  socket.emit('admin_abrir_ronda', {
+    key: key(),
+    config: { title: $('#title').value.trim(), nextShow: $('#nextShow').value.trim(), songs: collectSongs() }
+  }, res => res?.ok ? setStatus('Ronda abierta ✓','ok') : setStatus('Error: ' + (res?.error||'?'),'err'));
+};
+$('#closeBtn').onclick = () => {
+  socket.emit('admin_cerrar_ronda', { key: key() },
+    res => res?.ok ? setStatus('Ronda cerrada · ganador definido ✓','ok') : setStatus('Error: ' + (res?.error||'?'),'err'));
+};
+$('#resetBtn').onclick = () => {
+  socket.emit('admin_reset', { key: key() },
+    res => res?.ok ? setStatus('Votos reiniciados ✓','ok') : setStatus('Error: ' + (res?.error||'?'),'err'));
+};
+
+function renderLive(s) {
+  if (!s) { $('#live').textContent = 'Sin ronda activa'; return; }
+  const pill = s.open ? '<span class="pill open">ABIERTA</span>' : '<span class="pill closed">CERRADA</span>';
+  const rows = s.songs.map(x => `${x.rank}. ${x.title} — <b style="color:var(--orange)">${x.votes}</b> (${x.pct}%)`).join('<br>');
+  $('#live').innerHTML = `${pill} &nbsp; total: <b>${s.total}</b><br><br>${rows}`;
+}
+socket.on('estado_actual', renderLive);
+socket.on('voto_recibido', ({state}) => renderLive(state));
+socket.on('ronda_concluida', ({state}) => renderLive(state));
+socket.on('rebase_ocurrido', ({state}) => renderLive(state));
+</script>
+</body>
+</html>

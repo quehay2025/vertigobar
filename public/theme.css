@@ -1,0 +1,93 @@
+/* =========================================================================
+   VÉRTIGO BAR — Sistema de diseño (Arcade / Esports HUD)
+   ========================================================================= */
+:root {
+  /* Paleta */
+  --bg-0: #050506;          /* negro puro */
+  --bg-1: #0b0c10;          /* grafito */
+  --bg-2: #14161d;          /* panel */
+  --bg-3: #1c1f29;          /* panel elevado */
+  --line: #2a2e3a;
+
+  --orange: #ff6a00;        /* naranja eléctrico (marca / acción) */
+  --orange-2: #ff8f2e;
+  --orange-deep: #cc4a00;
+  --gold: #ffc247;          /* rebase / líder */
+  --white: #ffffff;
+  --neon: #4be3ff;          /* acento neón activo */
+  --text: #eef0f5;
+  --text-dim: #8a90a2;
+
+  --glow-orange: 0 0 18px rgba(255,106,0,.55), 0 0 42px rgba(255,106,0,.28);
+  --glow-gold: 0 0 22px rgba(255,194,71,.65), 0 0 55px rgba(255,194,71,.35);
+  --glow-neon: 0 0 16px rgba(75,227,255,.6);
+
+  --radius: 14px;
+  --radius-lg: 20px;
+
+  --grad-brand: linear-gradient(135deg, var(--orange) 0%, var(--orange-deep) 100%);
+  --grad-gold: linear-gradient(135deg, #ffe08a 0%, var(--gold) 40%, var(--orange) 100%);
+  --grad-panel: linear-gradient(160deg, var(--bg-3) 0%, var(--bg-1) 100%);
+
+  --font: 'Rajdhani', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Orbitron', 'Rajdhani', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font);
+  color: var(--text);
+  background:
+    radial-gradient(1200px 700px at 50% -10%, rgba(255,106,0,.10), transparent 60%),
+    radial-gradient(900px 600px at 100% 110%, rgba(75,227,255,.06), transparent 60%),
+    var(--bg-0);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Rejilla sutil tipo HUD de fondo */
+.hud-grid::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(circle at 50% 40%, black, transparent 85%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Marca */
+.brand { font-family: var(--font-mono); font-weight: 800; letter-spacing: 2px; }
+.brand .b1 { color: var(--white); }
+.brand .b2 {
+  color: var(--orange);
+  text-shadow: var(--glow-orange);
+}
+.brand-sub {
+  font-family: var(--font-mono); font-size: .6rem; letter-spacing: 6px;
+  color: var(--text-dim); border-top: 1px solid var(--line);
+}
+
+.btn {
+  font-family: var(--font); font-weight: 700; letter-spacing: .5px;
+  border: none; cursor: pointer; color: var(--white);
+  background: var(--grad-brand); box-shadow: var(--glow-orange);
+  border-radius: var(--radius); padding: 14px 20px; font-size: 1rem;
+  transition: transform .12s ease, box-shadow .2s ease, filter .2s ease;
+}
+.btn:active { transform: translate3d(0,2px,0) scale(.98); }
+.btn:disabled { filter: grayscale(.7) brightness(.6); box-shadow: none; cursor: not-allowed; }
+
+/* Utilidades de aceleración por hardware */
+.gpu { will-change: transform, opacity; transform: translate3d(0,0,0); }
+
+@keyframes float-up {
+  0%   { transform: translate3d(-50%, 0, 0) scale(1); opacity: 1; }
+  100% { transform: translate3d(-50%, -60px, 0) scale(1.4); opacity: 0; }
+}
+@keyframes flashbang {
+  0% { opacity: 0; } 8% { opacity: .95; } 100% { opacity: 0; }
+}
