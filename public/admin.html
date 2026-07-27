@@ -95,7 +95,7 @@
     <div class="row-actions">
       <button class="btn" id="openBtn">▸ ABRIR RONDA</button>
       <button class="btn ghost" id="resetBtn">↺ Reiniciar votos</button>
-      <button class="btn danger" id="closeBtn">■ CERRAR (K.O.)</button>
+      <button class="btn danger" id="closeBtn">■ CERRAR VOTACIÓN</button>
     </div>
     <div class="status" id="status"></div>
   </div>
@@ -242,7 +242,7 @@ $('#openBtn').onclick = () => {
 };
 $('#closeBtn').onclick = () => {
   socket.emit('admin_cerrar_ronda', { key: key() },
-    res => res?.ok ? setStatus('#status', 'Ronda cerrada · ganador definido ✓', 'ok') : setStatus('#status', 'Error: ' + window.vertigoError(res?.error), 'err'));
+    res => res?.ok ? setStatus('#status', 'Votación cerrada ✓', 'ok') : setStatus('#status', 'Error: ' + window.vertigoError(res?.error), 'err'));
 };
 $('#resetBtn').onclick = () => {
   socket.emit('admin_reset', { key: key() },

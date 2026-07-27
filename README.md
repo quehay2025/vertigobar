@@ -4,7 +4,9 @@ Sistema de votación en vivo con estética **arcade / HUD de Esports**. Cada art
 **perfil persistente** (con su propio repertorio) y el operador elige quién está en vivo esta
 noche. Los clientes votan desde el móvil escaneando un QR; la pantalla del bar (TV 16:9)
 muestra las barras en tiempo real con animaciones estilo videojuego (shockwave, sorpasso/turbo
-drift, K.O. del ganador).
+drift). La votación es **continua durante toda la noche** — no hay "un solo ganador": cada vez
+que un ítem llega a #1 y el artista lo marca cumplido, la TV celebra por 30 segundos y ese ítem
+vuelve al ranking con 0 votos, listo para que la gente lo pida de nuevo.
 
 ## Arquitectura
 
@@ -40,10 +42,11 @@ mano [`public/categories.js`](public/categories.js) (browser).
 - **`/tv`** — Pantalla del Bar (16:9): 70 % ranking en vivo con **fuego real por puesto**
   (naranja 1º, azul 2º, verde 3º); 30 % QR, artista en vivo y próximo show.
 - **`/artista`** — Panel del artista: entra con su **código personal de 6 dígitos**, gestiona su
-  repertorio de forma autónoma (agregar/editar/borrar) y, si es quien está en vivo, marca ítems
-  como **✓ cumplidos** y los reactiva.
+  repertorio de forma autónoma (agregar/editar/borrar) y, si es quien está en vivo, ve el ranking
+  actualizarse solo (sin recargar) y marca ítems como **✓ cumplidos** cuando termina de
+  interpretarlos.
 - **`/admin`** — Panel de operador (protegido por `ADMIN_KEY`): crear/borrar artistas y ver su
-  código, elegir quién está en vivo para abrir la ronda, cerrar (K.O.) y reiniciar votos.
+  código, elegir quién está en vivo para abrir la ronda, cerrar la votación y reiniciar votos.
 
 ## Flujo de una noche
 
@@ -54,14 +57,19 @@ mano [`public/categories.js`](public/categories.js) (browser).
    falta volver a escribirlo.
 3. **El operador elige quién está en vivo** en `/admin` → "Iniciar ronda" → selecciona el
    artista → su repertorio se copia a la votación de esta noche.
-4. La gente vota desde el móvil; el contador sube **al instante** y el ranking se reordena en la
-   TV con turbo drift cuando hay sorpasso.
-5. El artista (o el operador) marca **✓ Ya lo hice** cuando termina un ítem: sale del ranking,
-   sus puntos se reinician a 0 y pasa a "cumplidos" (para no repetirlo). El siguiente sube
-   automáticamente a #1.
-6. Si la gente quiere que se repita, el artista lo **reactiva** desde "Ya cumplidos" (vuelve al
-   ranking con 0 puntos).
-7. Al cerrar la ronda (K.O.), la TV congela el ranking y explota el ganador.
+4. La gente vota desde el móvil (cada 5 min); el contador sube **al instante** para todos —
+   público, TV y el propio artista en su panel, sin que nadie tenga que refrescar nada — y el
+   ranking se reordena en la TV con turbo drift cuando hay sorpasso.
+5. El artista decide cuándo interpretar el ítem que está arriba (o cualquier otro) y, al
+   terminar, marca **✓ Ya lo hice** desde su panel — a su propio ritmo, sin esperar a nadie.
+   Eso reinicia sus votos a 0 (cae al fondo del mismo ranking, pero sigue votable) y dispara en
+   la TV una **celebración de 30 segundos** (confeti + tarjeta con el ítem y los votos con los
+   que ganó). Al pasar los 30s, la TV vuelve sola al ranking en vivo con el siguiente #1 arriba.
+6. Esto se repite las veces que haga falta durante las ~6 horas de la noche — no hay "ronda
+   final" ni "ganador de la noche": la gente puede volver a pedir algo que ya sonó simplemente
+   votándolo de nuevo, sin que el artista tenga que "reactivarlo".
+7. Si el operador necesita detener la votación (fin de la noche, cambio de artista), usa
+   **CERRAR VOTACIÓN** — el ranking queda congelado tal como estaba, sin overlay de ganador.
 
 > **Próximo show:** desde `/admin`, independiente de la ronda activa, el operador define quién
 > sigue con **hora exacta** o **minutos desde ahora** (switch en la tarjeta "Próximo show"). La
@@ -97,12 +105,11 @@ Copia `.env.example` a `.env` para configurar `ADMIN_KEY` y `MONGODB_URI`.
 | `voto_recibido` | Latido `scale(1.05)` + partícula `+1` (shockwave) |
 | `empate_detectado` | Badge "DUELO" en la barra igualada |
 | `rebase_ocurrido` | Turbo drift: brillo dorado + desplazamiento fluido hacia arriba |
-| `tema_cumplido` | Sello "✓ CUMPLIDO" verde + salida de la barra + reconstrucción del ranking |
-| `tema_reactivado` | El ítem vuelve al ranking |
-| `ronda_concluida` | Flashbang + perdedoras al 20 % + explosión del ganador (K.O.) |
+| `tema_cumplido` | Celebración de **30s** (confeti + tarjeta con votos finales), luego vuelve sola al ranking en vivo — se repite toda la noche |
+| `ronda_concluida` | Ranking se congela (votación detenida por el operador); sin overlay de ganador |
 
-**Acciones sobre la ronda en vivo (socket → servidor):** `marcar_cumplido`, `reactivar_tema`,
-`agregar_tema` — autorizadas con `ADMIN_KEY` o el código del artista que está en vivo.
+**Acciones sobre la ronda en vivo (socket → servidor):** `marcar_cumplido`, `agregar_tema` —
+autorizadas con `ADMIN_KEY` o el código del artista que está en vivo.
 
 **Acciones sobre el repertorio de un artista:** `artista_login`, `artista_agregar_item`,
 `artista_editar_item`, `artista_eliminar_item` — autorizadas con `ADMIN_KEY` o el código propio
@@ -140,5 +147,5 @@ Alternativas equivalentes: Railway, Fly.io, o cualquier VPS con `node server.js`
 
 - Todas las animaciones usan propiedades aceleradas por GPU (`translate3d`, `scaleX`, `opacity`).
 - El rebase reposiciona las filas por `transform` (no por reflow del DOM) → transiciones fluidas.
-- El confeti del K.O. es un canvas 2D ligero que se autodetiene a los ~8 s.
+- El confeti de la celebración es un canvas 2D ligero que se autodetiene a los ~8 s.
 - Sin dependencias de render pesadas ni vídeos: seguro para móviles de gama media/baja y datos móviles.

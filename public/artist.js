@@ -138,6 +138,9 @@
 
   // ---------------------------------------------------------------------
   //  EN VIVO — ranking de la ronda actual (solo si este artista está en vivo)
+  //  La votación es continua toda la noche: al marcar cumplido, el ítem
+  //  reinicia sus votos y cae al fondo del mismo ranking, pero sigue
+  //  votable — no desaparece ni hay que "reactivarlo".
   // ---------------------------------------------------------------------
   function renderLive() {
     if (!artist) return;
@@ -151,14 +154,12 @@
       return;
     }
 
-    $('#liveHint').innerHTML = `Marca <b>${cat().doneCta}</b> cuando termines: sale del ranking, se reinician sus puntos y sube el siguiente. Todos podrán votar de nuevo al instante.`;
+    $('#liveHint').innerHTML = `Marca <b>${cat().doneCta}</b> cuando termines: se reinician sus puntos y la pantalla lo celebra por 30s. Sigue en la lista por si la gente lo vuelve a pedir.`;
     $('#activeCount').textContent = state.items.length;
-    $('#doneLabel').textContent = `${cat().itemLabelPlural} que ya pasaron`;
-    $('#doneCount').textContent = (state.done || []).length;
 
     const rk = $('#ranking');
     if (!state.items.length) {
-      rk.innerHTML = `<div class="empty">No hay ${cat().itemLabelPlural.toLowerCase()} en votación. Agrega uno o reactiva uno cumplido.</div>`;
+      rk.innerHTML = `<div class="empty">No hay ${cat().itemLabelPlural.toLowerCase()} en votación. Agrega uno desde tu repertorio.</div>`;
     } else {
       rk.innerHTML = '';
       state.items.forEach(it => {
@@ -174,41 +175,17 @@
           </div>
           <div class="v">${it.votes}<small>${it.pct}%</small></div>
           <button class="done-btn">${cat().doneCta}</button>`;
-        row.querySelector('.done-btn').addEventListener('click', () => cumplir(it.id, row));
+        row.querySelector('.done-btn').addEventListener('click', e => cumplir(it.id, e.target));
         rk.appendChild(row);
       });
     }
-
-    const dl = $('#donelist');
-    const done = state.done || [];
-    if (!done.length) {
-      dl.innerHTML = '<div class="empty">Aún nada cumplido en esta ronda.</div>';
-    } else {
-      dl.innerHTML = '';
-      done.forEach(it => {
-        const sub = itemSubtitle(it);
-        const row = document.createElement('div');
-        row.className = 'done-row';
-        row.innerHTML = `
-          <div class="info"><div class="t">${esc(it.title)}</div>${sub ? `<div class="a">${esc(sub)}</div>` : ''}</div>
-          <button class="react-btn">↺ Reactivar</button>`;
-        row.querySelector('.react-btn').addEventListener('click', () => reactivar(it.id));
-        dl.appendChild(row);
-      });
-    }
   }
 
-  function cumplir(itemId, row) {
-    row.classList.add('gone');
+  function cumplir(itemId, btn) {
+    btn.disabled = true;
     socket.emit('marcar_cumplido', { code, itemId }, res => {
-      if (res && res.ok) msg(`${cat().doneCta} · sube el siguiente`);
-      else { row.classList.remove('gone'); msg('No se pudo marcar: ' + window.vertigoError(res?.error), true); }
-    });
-  }
-  function reactivar(itemId) {
-    socket.emit('reactivar_tema', { code, itemId }, res => {
-      if (res && res.ok) msg('↺ Vuelve a votación');
-      else msg('No se pudo reactivar: ' + window.vertigoError(res?.error), true);
+      if (res && res.ok) msg(`${cat().doneCta} ✓`);
+      else { btn.disabled = false; msg('No se pudo marcar: ' + window.vertigoError(res?.error), true); }
     });
   }
 
@@ -220,7 +197,6 @@
   socket.on('voto_recibido', ({ state: s }) => onState(s));
   socket.on('rebase_ocurrido', ({ state: s }) => onState(s));
   socket.on('tema_cumplido', ({ state: s }) => onState(s));
-  socket.on('tema_reactivado', ({ state: s }) => onState(s));
   socket.on('ronda_iniciada', s => onState(s));
   socket.on('ronda_concluida', ({ state: s }) => onState(s));
 

@@ -4,8 +4,7 @@ let dbEnabled = false;
 
 const itemSchema = new mongoose.Schema({
   id: String, title: String, artist: String, genre: String,
-  votes: { type: Number, default: 0 },
-  status: { type: String, default: 'active' }   // 'active' | 'done'
+  votes: { type: Number, default: 0 }
 }, { _id: false });
 
 const roundSchema = new mongoose.Schema({
@@ -13,7 +12,6 @@ const roundSchema = new mongoose.Schema({
   cycle: { type: Number, default: 0 },
   title: String,
   open: Boolean,
-  winnerId: String,
   artistId: String,
   artistName: String,
   category: String,

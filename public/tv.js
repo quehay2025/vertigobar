@@ -1,7 +1,8 @@
 /* =========================================================================
    VÉRTIGO BAR — Pantalla del Bar (TV)
    Orquesta: voto_recibido (shockwave), rebase_ocurrido (turbo drift),
-             empate_detectado (duelo), ronda_concluida (K.O.)
+             empate_detectado (duelo), tema_cumplido (celebración de 30s,
+             se repite toda la noche — no hay "un solo ganador")
    ========================================================================= */
 (() => {
   const socket = io();
@@ -212,23 +213,26 @@
   socket.on('proximo_show_actualizado', info => { nextShowInfo = info; renderNextShow(); });
 
   // ---------------------------------------------------------------------
-  //  K.O. / GANADOR
+  //  CELEBRACIÓN (recurrente: se repite cada vez que algo se cumple)
   // ---------------------------------------------------------------------
-  function showKO() {
-    const items = state.items || [];
-    const w = items.find(it => it.id === state.winnerId) || items[0];
-    if (!w) return;
-    barsEl.classList.add('settled');
-    orderIds.forEach(id => rowById.get(id)?.classList.toggle('winner', id === w.id));
+  let celebrationTimeout = null;
+  function showCelebration({ title, sub, votes }) {
+    clearTimeout(celebrationTimeout);
     flash();
-    $('#koTitle').textContent = w.title;
-    const sub = itemSub(w);
+    $('#koKicker').textContent = `¡${catCfg().doneToast.toUpperCase()}!`;
+    $('#koTitle').textContent = title;
     $('#koArtist').textContent = sub;
     $('#koArtist').style.display = sub ? '' : 'none';
-    $('#koVotes').textContent = w.votes;
-    setTimeout(() => { $('#ko').classList.add('on'); confetti(); }, 350);
+    $('#koVotes').textContent = votes;
+    $('#ko').classList.add('on');
+    confetti();
+    celebrationTimeout = setTimeout(hideCelebration, 30000);
   }
-  function hideKO() { $('#ko').classList.remove('on'); barsEl.classList.remove('settled'); orderIds.forEach(id => rowById.get(id)?.classList.remove('winner')); }
+  function hideCelebration() {
+    clearTimeout(celebrationTimeout);
+    celebrationTimeout = null;
+    $('#ko').classList.remove('on');
+  }
 
   // ---------------------------------------------------------------------
   //  CONFETTI (canvas ligero)
@@ -276,34 +280,25 @@
     const setChanged = s ? itemSetChanged(s) : true;
     state = s;
     updateSideInfo();
-    if (isNew) { hideKO(); buildRows(); }
+    if (isNew) { hideCelebration(); buildRows(); }
     else if (setChanged) { buildRows(); }
     else { updateStats(); reorder(); }
-    if (s && !s.open && s.winnerId) showKO();
   });
 
-  // El artista/staff marcó el ítem como cumplido: sello + salida, luego se reconstruye
-  socket.on('tema_cumplido', ({ itemId, title, state: s }) => {
-    const row = rowById.get(itemId);
-    if (row) {
-      const stamp = document.createElement('div');
-      stamp.className = 'done-stamp';
-      stamp.textContent = '✓ CUMPLIDO';
-      row.appendChild(stamp);
-      row.classList.add('vanish');
-    }
-    ticker(`✓ <b>${escapeHtml(title)}</b> cumplido · ¡vota el siguiente!`);
-    flash();
-    setTimeout(() => { state = s; buildRows(); }, 650);
-  });
-
-  socket.on('tema_reactivado', ({ title, state: s }) => {
-    state = s; buildRows();
-    ticker(`↺ <b>${escapeHtml(title)}</b> vuelve a la votación`);
+  // El artista/staff marcó el ítem como cumplido: sus votos vuelven a 0 (cae
+  // al fondo del mismo ranking, sigue votable) y se dispara la celebración
+  // de 30s. Esto se repite toda la noche, cada vez que algo se cumple.
+  socket.on('tema_cumplido', ({ title, artist, genre, votes, state: s }) => {
+    state = s;
+    updateStats();
+    reorder();
+    const sub = itemSub({ artist, genre });
+    showCelebration({ title, sub, votes });
+    ticker(`🎉 <b>${escapeHtml(title)}</b> ¡${catCfg().doneToast}! · sigue la votación`);
   });
 
   socket.on('ronda_iniciada', s => {
-    state = s; hideKO(); buildRows(); updateSideInfo();
+    state = s; hideCelebration(); buildRows(); updateSideInfo();
     ticker('Nueva ronda · <b>¡a votar!</b>');
   });
 
@@ -329,9 +324,11 @@
     ticker('⚔️ <b>¡EMPATE!</b> Duelo en el vértigo');
   });
 
+  // Se detiene la votación por ahora (ej. fin de la noche, cambio de artista).
+  // No hay overlay de ganador: el ranking se queda congelado tal como estaba.
   socket.on('ronda_concluida', ({ state: s }) => {
     state = s; updateStats(); reorder();
-    showKO();
+    ticker('Votación cerrada por ahora');
   });
 
   window.addEventListener('resize', () => layout(false));

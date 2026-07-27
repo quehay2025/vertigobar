@@ -29,10 +29,12 @@ const VOTE_COOLDOWN_MS = 5 * 60 * 1000;
 // ---------------------------------------------------------------------------
 //  ESTADO EN MEMORIA (fuente de verdad para tiempo real; Mongo persiste)
 // ---------------------------------------------------------------------------
-// Ronda:
-//   { id, cycle, title, open, winnerId, createdAt,
+// Ronda: la votación es continua durante toda la noche, no hay "un ganador".
+// Cuando un ítem se marca cumplido sus votos se reinician a 0 (cae al fondo
+// del mismo ranking) pero sigue votable — la gente puede pedirlo de nuevo.
+//   { id, cycle, title, open, createdAt,
 //     artistId, artistName, category,
-//     items: [{ id, title, artist, genre, votes, status:'active'|'done' }] }
+//     items: [{ id, title, artist, genre, votes }] }
 let round = null;
 
 // clientId -> timestamp (ms) del último voto. Vive fuera de `round` para que
@@ -56,7 +58,7 @@ function isRoundArtist(code) {
   const artist = artists.findByCode(code);
   return !!artist && artist.id === round.artistId;
 }
-// Autoriza acciones sobre la RONDA EN VIVO (marcar cumplido, reactivar, agregar ad-hoc)
+// Autoriza acciones sobre la RONDA EN VIVO (marcar cumplido, agregar ad-hoc)
 function isRoundStaff({ key, code } = {}) {
   return key === ADMIN_KEY || isRoundArtist(code);
 }
@@ -77,27 +79,23 @@ function newRound({ artistId, title } = {}) {
     cycle: 0,
     title: (title && title.trim()) || cfg.promptLabel,
     open: true,
-    winnerId: null,
     artistId: artist.id,
     artistName: artist.name,
     category: artist.category,
     createdAt: Date.now(),
     items: artist.repertoire.map(it => ({
-      id: it.id, title: it.title, artist: it.artist || '', genre: it.genre || '',
-      votes: 0, status: 'active'
+      id: it.id, title: it.title, artist: it.artist || '', genre: it.genre || '', votes: 0
     }))
   };
   return { round };
 }
 
-const activeItems = r => r.items.filter(i => i.status === 'active');
-const doneItems = r => r.items.filter(i => i.status === 'done');
-
-// Ranking (solo activos), mayor a menor votos; desempata por id estable
+// Ranking, mayor a menor votos; desempata por id estable. Todos los ítems
+// son siempre votables (no hay estado "retirado").
 function rankedItems(r) {
-  return activeItems(r).sort((a, b) => b.votes - a.votes || a.id.localeCompare(b.id));
+  return [...r.items].sort((a, b) => b.votes - a.votes || a.id.localeCompare(b.id));
 }
-const totalVotes = r => activeItems(r).reduce((acc, i) => acc + i.votes, 0);
+const totalVotes = r => r.items.reduce((acc, i) => acc + i.votes, 0);
 
 // Payload publico
 function publicState(r) {
@@ -108,7 +106,6 @@ function publicState(r) {
     cycle: r.cycle,
     title: r.title,
     open: r.open,
-    winnerId: r.winnerId,
     artistId: r.artistId,
     artistName: r.artistName,
     category: r.category,
@@ -117,8 +114,7 @@ function publicState(r) {
       id: it.id, title: it.title, artist: it.artist, genre: it.genre, votes: it.votes,
       rank: i + 1,
       pct: total > 0 ? Math.round((it.votes / total) * 100) : 0
-    })),
-    done: doneItems(r).map(it => ({ id: it.id, title: it.title, artist: it.artist, genre: it.genre }))
+    }))
   };
 }
 
@@ -133,9 +129,9 @@ async function persist(r) {
       { id: r.id },
       {
         id: r.id, cycle: r.cycle, title: r.title,
-        open: r.open, winnerId: r.winnerId,
+        open: r.open,
         artistId: r.artistId, artistName: r.artistName, category: r.category,
-        items: r.items.map(i => ({ id: i.id, title: i.title, artist: i.artist, genre: i.genre, votes: i.votes, status: i.status })),
+        items: r.items.map(i => ({ id: i.id, title: i.title, artist: i.artist, genre: i.genre, votes: i.votes })),
         createdAt: new Date(r.createdAt)
       },
       { upsert: true, new: true }
@@ -173,7 +169,7 @@ io.on('connection', socket => {
     if (last && now - last < VOTE_COOLDOWN_MS) {
       return ack?.({ ok: false, error: 'en_espera', retryAt: last + VOTE_COOLDOWN_MS });
     }
-    const item = round.items.find(i => i.id === itemId && i.status === 'active');
+    const item = round.items.find(i => i.id === itemId);
     if (!item) return ack?.({ ok: false, error: 'item_invalido' });
 
     const prevTotal = totalVotes(round);
@@ -192,7 +188,7 @@ io.on('connection', socket => {
     // Empate
     const cuenta = {};
     let empate = false;
-    for (const i of activeItems(round)) {
+    for (const i of round.items) {
       if (i.votes > 0) { cuenta[i.votes] = (cuenta[i.votes] || 0) + 1; if (cuenta[i.votes] > 1) empate = true; }
     }
     if (empate) io.emit('empate_detectado', { state });
@@ -205,37 +201,25 @@ io.on('connection', socket => {
   });
 
   // -------------------- ARTISTA/STAFF: marcar cumplido --------------------
-  // Termina el ítem en vivo -> sale del ranking, sus puntos se reinician (0)
-  // y podrá re-entrar luego. El siguiente sube automáticamente a #1 (el
-  // cooldown de cada votante sigue su propio reloj, no depende del ciclo).
+  // El artista ya lo interpretó: sus votos se reinician a 0 (cae al fondo del
+  // mismo ranking, sigue votable toda la noche) y dispara la celebración en
+  // la TV. Esto se repite cada vez que algo llega a #1 y se interpreta -
+  // no hay "un solo ganador de la noche".
   socket.on('marcar_cumplido', async ({ key, code, itemId } = {}, ack) => {
     if (!isRoundStaff({ key, code })) return ack?.({ ok: false, error: 'no_autorizado' });
     if (!round) return ack?.({ ok: false, error: 'sin_ronda' });
-    const item = round.items.find(i => i.id === itemId && i.status === 'active');
+    const item = round.items.find(i => i.id === itemId);
     if (!item) return ack?.({ ok: false, error: 'item_invalido' });
 
-    item.status = 'done';
-    item.votes = 0;                 // se reinician los puntos
-    round.cycle += 1;               // nuevo ciclo de votacion
+    const votesAlCumplirse = item.votes;   // para mostrar en la celebración
+    item.votes = 0;                        // se reinicia, cae al fondo del ranking
+    round.cycle += 1;
 
     const state = publicState(round);
-    io.emit('tema_cumplido', { itemId, title: item.title, state });
-    io.emit('estado_actual', state);
-    ack?.({ ok: true, state });
-    await persist(round);
-  });
-
-  // -------------------- ARTISTA/STAFF: reactivar ítem --------------------
-  socket.on('reactivar_tema', async ({ key, code, itemId } = {}, ack) => {
-    if (!isRoundStaff({ key, code })) return ack?.({ ok: false, error: 'no_autorizado' });
-    if (!round) return ack?.({ ok: false, error: 'sin_ronda' });
-    const item = round.items.find(i => i.id === itemId && i.status === 'done');
-    if (!item) return ack?.({ ok: false, error: 'item_invalido' });
-    item.status = 'active';
-    item.votes = 0;
-    const state = publicState(round);
-    io.emit('tema_reactivado', { itemId, title: item.title, state });
-    io.emit('estado_actual', state);
+    io.emit('tema_cumplido', {
+      itemId, title: item.title, artist: item.artist, genre: item.genre,
+      votes: votesAlCumplirse, state
+    });
     ack?.({ ok: true, state });
     await persist(round);
   });
@@ -248,7 +232,7 @@ io.on('connection', socket => {
     if (!round) return ack?.({ ok: false, error: 'sin_ronda' });
     const clean = sanitizeItemFields(round.category, { title, artist, genre });
     if (!clean) return ack?.({ ok: false, error: 'campos_invalidos' });
-    round.items.push({ id: nanoid(6), ...clean, votes: 0, status: 'active' });
+    round.items.push({ id: nanoid(6), ...clean, votes: 0 });
     const state = publicState(round);
     io.emit('estado_actual', state);
     ack?.({ ok: true, state });
@@ -272,7 +256,7 @@ io.on('connection', socket => {
     if (round && round.artistId === artistId) {
       round.items.push({
         id: result.item.id, title: result.item.title, artist: result.item.artist,
-        genre: result.item.genre, votes: 0, status: 'active'
+        genre: result.item.genre, votes: 0
       });
       io.emit('estado_actual', publicState(round));
       await persist(round);
@@ -335,14 +319,15 @@ io.on('connection', socket => {
     ack?.({ ok: true, state: publicState(round) });
   });
 
+  // Detiene la votación por ahora (ej. cierre de la noche, cambio de artista).
+  // Ya no hay "ganador" que declarar: la votación es continua, sin final.
   socket.on('admin_cerrar_ronda', async ({ key } = {}, ack) => {
     if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
     if (!round) return ack?.({ ok: false, error: 'sin_ronda' });
     round.open = false;
-    round.winnerId = rankedItems(round)[0]?.id || null;
     await persist(round);
-    io.emit('ronda_concluida', { state: publicState(round), winnerId: round.winnerId });
-    ack?.({ ok: true, winnerId: round.winnerId });
+    io.emit('ronda_concluida', { state: publicState(round) });
+    ack?.({ ok: true });
   });
 
   // Reinicia los votos de la ronda actual (mismo artista/ítems), sin re-elegirla
@@ -350,8 +335,6 @@ io.on('connection', socket => {
     if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
     if (!round) return ack?.({ ok: false, error: 'sin_ronda' });
     round.items.forEach(i => { i.votes = 0; });
-    round.cycle += 1;
-    round.winnerId = null;
     round.open = true;
     const state = publicState(round);
     io.emit('estado_actual', state);
@@ -429,11 +412,10 @@ async function boot() {
       if (last) {
         round = {
           id: last.id, cycle: last.cycle || 0, title: last.title,
-          open: last.open, winnerId: last.winnerId,
+          open: last.open,
           artistId: last.artistId || null, artistName: last.artistName || '', category: last.category || 'otro',
           items: (last.items || []).map(i => ({
-            id: i.id, title: i.title, artist: i.artist || '', genre: i.genre || '',
-            votes: i.votes, status: i.status || 'active'
+            id: i.id, title: i.title, artist: i.artist || '', genre: i.genre || '', votes: i.votes
           })),
           createdAt: last.createdAt?.getTime() || Date.now()
         };

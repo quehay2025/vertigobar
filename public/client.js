@@ -192,19 +192,15 @@
     show('done');
   }
 
+  // No hay "ganador de la noche": la votación es continua. Esto solo se
+  // dispara cuando el operador detiene la votación por un rato (fin de la
+  // noche, cambio de artista) — no cada vez que algo se cumple.
   function goRoundConcluded() {
     if (!userName) return;
-    const won = !!(lastVote && state && state.winnerId === lastVote.id);
-    $('#done').classList.toggle('win', won);
-    if (won) {
-      $('#doneIcon').textContent = '★';
-      $('#doneTitle').textContent = '¡GANÓ TU ELECCIÓN!';
-      $('#doneText').textContent = 'Tu elección se lleva la ronda. Sube el volumen.';
-    } else {
-      $('#doneIcon').textContent = '✓';
-      $('#doneTitle').textContent = 'Ronda cerrada';
-      $('#doneText').textContent = state && state.winnerId ? `Ganó: ${winnerLabel()}` : 'Gracias por participar.';
-    }
+    $('#done').classList.remove('win');
+    $('#doneIcon').textContent = '✓';
+    $('#doneTitle').textContent = 'Votación cerrada';
+    $('#doneText').textContent = 'Por ahora no se puede votar. Mira la pantalla del bar.';
     renderMyPick();
     renderCooldown();
     show('done');
@@ -218,13 +214,6 @@
     } else {
       el.innerHTML = ''; el.style.display = 'none';
     }
-  }
-
-  function winnerLabel() {
-    const w = state && (state.items || []).find(it => it.id === state.winnerId);
-    if (!w) return '';
-    const sub = catCfg().subtitleField ? w[catCfg().subtitleField] : (w.genre || w.artist || '');
-    return sub ? `${w.title} — ${sub}` : w.title;
   }
 
   // ---------------------------------------------------------------------
@@ -290,7 +279,6 @@
   socket.on('voto_recibido', ({ state: s }) => onStateUpdate(s));
   socket.on('rebase_ocurrido', ({ state: s }) => onStateUpdate(s));
   socket.on('tema_cumplido', ({ state: s }) => onStateUpdate(s));
-  socket.on('tema_reactivado', ({ state: s }) => onStateUpdate(s));
   socket.on('ronda_iniciada', s => onStateUpdate(s));
 
   socket.on('ronda_concluida', ({ state: s }) => {
