@@ -172,10 +172,7 @@
       } else {
         const msg = $('#voteMsg');
         msg.classList.add('err');
-        msg.textContent = ({
-          votacion_cerrada: 'La votación está cerrada',
-          item_invalido: 'Opción no válida'
-        })[res?.error] || 'No se pudo registrar el voto';
+        msg.textContent = window.vertigoError(res?.error);
       }
     });
   }

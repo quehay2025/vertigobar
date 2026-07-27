@@ -124,6 +124,7 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="categories.js"></script>
+<script src="errors.js"></script>
 <script>
 const socket = io();
 const $ = s => document.querySelector(s);
@@ -160,7 +161,7 @@ $('#createArtistBtn').onclick = () => {
       $('#codeRevealName').textContent = `${res.artist.name} · ${window.vertigoCategory(res.artist.category).label}`;
       loadArtists();
     } else {
-      setStatus('#artistStatus', 'Error: ' + (res?.error || '?'), 'err');
+      setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
     }
   });
 };
@@ -169,7 +170,7 @@ $('#createArtistBtn').onclick = () => {
 $('#refreshArtistsBtn').onclick = loadArtists;
 function loadArtists() {
   socket.emit('admin_listar_artistas', { key: key() }, res => {
-    if (!res?.ok) { setStatus('#artistStatus', 'Error: ' + (res?.error || '?'), 'err'); return; }
+    if (!res?.ok) { setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err'); return; }
     artistsCache = res.artists;
     renderArtistList();
     renderRoundArtistSelect();
@@ -199,13 +200,13 @@ function renderArtistList() {
           $('#codeRevealValue').textContent = res.artist.code;
           $('#codeRevealName').textContent = `${res.artist.name} · ${cat.label}`;
           loadArtists();
-        } else setStatus('#artistStatus', 'Error: ' + (res?.error || '?'), 'err');
+        } else setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
       });
     };
     row.querySelector('[data-act="del"]').onclick = () => {
       if (!confirm(`¿Eliminar a ${a.name} y su repertorio? Esto no se puede deshacer.`)) return;
       socket.emit('admin_eliminar_artista', { key: key(), artistId: a.id }, res => {
-        if (res?.ok) loadArtists(); else setStatus('#artistStatus', 'Error: ' + (res?.error || '?'), 'err');
+        if (res?.ok) loadArtists(); else setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
       });
     };
     box.appendChild(row);
@@ -237,15 +238,15 @@ $('#openBtn').onclick = () => {
   if (!artistId) return setStatus('#status', 'Elige un artista primero', 'err');
   socket.emit('admin_iniciar_ronda_artista', {
     key: key(), artistId, title: $('#title').value.trim()
-  }, res => res?.ok ? setStatus('#status', 'Ronda abierta ✓', 'ok') : setStatus('#status', 'Error: ' + (res?.error || '?'), 'err'));
+  }, res => res?.ok ? setStatus('#status', 'Ronda abierta ✓', 'ok') : setStatus('#status', 'Error: ' + window.vertigoError(res?.error), 'err'));
 };
 $('#closeBtn').onclick = () => {
   socket.emit('admin_cerrar_ronda', { key: key() },
-    res => res?.ok ? setStatus('#status', 'Ronda cerrada · ganador definido ✓', 'ok') : setStatus('#status', 'Error: ' + (res?.error || '?'), 'err'));
+    res => res?.ok ? setStatus('#status', 'Ronda cerrada · ganador definido ✓', 'ok') : setStatus('#status', 'Error: ' + window.vertigoError(res?.error), 'err'));
 };
 $('#resetBtn').onclick = () => {
   socket.emit('admin_reset', { key: key() },
-    res => res?.ok ? setStatus('#status', 'Votos reiniciados ✓', 'ok') : setStatus('#status', 'Error: ' + (res?.error || '?'), 'err'));
+    res => res?.ok ? setStatus('#status', 'Votos reiniciados ✓', 'ok') : setStatus('#status', 'Error: ' + window.vertigoError(res?.error), 'err'));
 };
 
 function renderLive(s) {
@@ -284,20 +285,20 @@ $('#nsSetBtn').onclick = () => {
   const mode = $('input[name="nsMode"]:checked').value;
   const value = mode === 'hora' ? $('#nsHora').value : $('#nsMinutos').value;
   socket.emit('admin_set_next_show', { key: key(), label, mode, value }, res => {
-    res?.ok ? setStatus('#nsStatus', 'Próximo show actualizado ✓', 'ok') : setStatus('#nsStatus', 'Error: ' + (res?.error || '?'), 'err');
+    res?.ok ? setStatus('#nsStatus', 'Próximo show actualizado ✓', 'ok') : setStatus('#nsStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
   });
 };
 $('#nsDelay10Btn').onclick = () => {
   socket.emit('admin_posponer_next_show', { key: key(), minutes: 10 },
-    res => res?.ok ? setStatus('#nsStatus', '+10 min aplicados ✓', 'ok') : setStatus('#nsStatus', 'Error: ' + (res?.error || '?'), 'err'));
+    res => res?.ok ? setStatus('#nsStatus', '+10 min aplicados ✓', 'ok') : setStatus('#nsStatus', 'Error: ' + window.vertigoError(res?.error), 'err'));
 };
 $('#nsDelay30Btn').onclick = () => {
   socket.emit('admin_posponer_next_show', { key: key(), minutes: 30 },
-    res => res?.ok ? setStatus('#nsStatus', '+30 min aplicados ✓', 'ok') : setStatus('#nsStatus', 'Error: ' + (res?.error || '?'), 'err'));
+    res => res?.ok ? setStatus('#nsStatus', '+30 min aplicados ✓', 'ok') : setStatus('#nsStatus', 'Error: ' + window.vertigoError(res?.error), 'err'));
 };
 $('#nsClearBtn').onclick = () => {
   socket.emit('admin_borrar_next_show', { key: key() },
-    res => res?.ok ? setStatus('#nsStatus', 'Próximo show quitado', 'ok') : setStatus('#nsStatus', 'Error: ' + (res?.error || '?'), 'err'));
+    res => res?.ok ? setStatus('#nsStatus', 'Próximo show quitado', 'ok') : setStatus('#nsStatus', 'Error: ' + window.vertigoError(res?.error), 'err'));
 };
 
 function renderNsLive() {

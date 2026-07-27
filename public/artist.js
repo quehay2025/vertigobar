@@ -78,7 +78,7 @@
         renderRepertoire();
         msg('✓ Agregado a tu repertorio');
       } else {
-        msg('No se pudo agregar: ' + (res?.error || '?'), true);
+        msg('No se pudo agregar: ' + window.vertigoError(res?.error), true);
       }
     });
   });
@@ -111,7 +111,7 @@
         if (!confirm(`¿Borrar "${it.title}" de tu repertorio?`)) return;
         socket.emit('artista_eliminar_item', { artistId: artist.id, code, itemId: it.id }, res => {
           if (res && res.ok) { artist = res.artist; renderRepertoire(); msg('✓ Eliminado de tu repertorio'); }
-          else msg('No se pudo borrar: ' + (res?.error || '?'), true);
+          else msg('No se pudo borrar: ' + window.vertigoError(res?.error), true);
         });
       });
       box.appendChild(row);
@@ -130,7 +130,7 @@
       row.querySelectorAll('[data-f]').forEach(i => { fields[i.dataset.f] = i.value.trim(); });
       socket.emit('artista_editar_item', { artistId: artist.id, code, itemId: it.id, fields }, res => {
         if (res && res.ok) { artist = res.artist; renderRepertoire(); msg('Actualizado ✓'); }
-        else msg('No se pudo guardar: ' + (res?.error || '?'), true);
+        else msg('No se pudo guardar: ' + window.vertigoError(res?.error), true);
       });
     });
     row.querySelector('.cancel-btn').addEventListener('click', renderRepertoire);
@@ -202,13 +202,13 @@
     row.classList.add('gone');
     socket.emit('marcar_cumplido', { code, itemId }, res => {
       if (res && res.ok) msg(`${cat().doneCta} · sube el siguiente`);
-      else { row.classList.remove('gone'); msg('No se pudo marcar: ' + (res?.error || '?'), true); }
+      else { row.classList.remove('gone'); msg('No se pudo marcar: ' + window.vertigoError(res?.error), true); }
     });
   }
   function reactivar(itemId) {
     socket.emit('reactivar_tema', { code, itemId }, res => {
       if (res && res.ok) msg('↺ Vuelve a votación');
-      else msg('No se pudo reactivar: ' + (res?.error || '?'), true);
+      else msg('No se pudo reactivar: ' + window.vertigoError(res?.error), true);
     });
   }
 
