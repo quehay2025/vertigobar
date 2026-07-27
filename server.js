@@ -414,6 +414,8 @@ app.get('/tv', (req, res) => res.sendFile(path.join(__dirname, 'public', 'tv.htm
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/artist', (req, res) => res.sendFile(path.join(__dirname, 'public', 'artist.html')));
 app.get('/artista', (req, res) => res.sendFile(path.join(__dirname, 'public', 'artist.html')));
+app.get('/vota', (req, res) => res.sendFile(path.join(__dirname, 'public', 'vota.html')));
+app.get('/votar', (req, res) => res.sendFile(path.join(__dirname, 'public', 'vota.html')));
 
 // ---------------------------------------------------------------------------
 //  ARRANQUE
@@ -442,7 +444,8 @@ async function boot() {
 
   server.listen(PORT, () => {
     console.log(`\n  VERTIGO BAR  ->  http://localhost:${PORT}`);
-    console.log(`  Cliente : http://localhost:${PORT}/`);
+    console.log(`  Inicio  : http://localhost:${PORT}/`);
+    console.log(`  Cliente : http://localhost:${PORT}/vota`);
     console.log(`  TV      : http://localhost:${PORT}/tv`);
     console.log(`  Artista : http://localhost:${PORT}/artista  (código personal por artista)`);
     console.log(`  Admin   : http://localhost:${PORT}/admin    (key: ${ADMIN_KEY})`);

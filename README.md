@@ -32,8 +32,11 @@ mano [`public/categories.js`](public/categories.js) (browser).
 
 ## Vistas
 
-- **`/`** — Vista Cliente (mobile-first): bienvenida + gamepad táctil con estados Normal /
-  Presionado / Bloqueado. Se desbloquea solo cuando empieza un nuevo ciclo (ítem cumplido) o ronda.
+- **`/`** — Página de inicio pública: explica la dinámica (cómo funciona, qué se vota según
+  categoría) con un botón **ENTRAR ▸** hacia `/vota`. Es lo que ve alguien que llega al dominio
+  directo, sin haber escaneado un QR.
+- **`/vota`** (o `/votar`) — Vista Cliente (mobile-first): bienvenida + gamepad táctil con
+  estados Normal / Presionado / Bloqueado. A esto apunta el QR de la TV.
 - **`/tv`** — Pantalla del Bar (16:9): 70 % ranking en vivo con **fuego real por puesto**
   (naranja 1º, azul 2º, verde 3º); 30 % QR, artista en vivo y próximo show.
 - **`/artista`** — Panel del artista: entra con su **código personal de 6 dígitos**, gestiona su
@@ -79,7 +82,8 @@ npm install
 npm start          # http://localhost:3000
 ```
 
-- Cliente: <http://localhost:3000/>
+- Inicio (público): <http://localhost:3000/>
+- Cliente / votación: <http://localhost:3000/vota>
 - TV: <http://localhost:3000/tv>
 - Admin: <http://localhost:3000/admin> (clave por defecto `vertigo-admin`)
 - Artista: <http://localhost:3000/artista> (con el código que le des desde `/admin`)

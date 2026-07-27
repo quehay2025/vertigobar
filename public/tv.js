@@ -21,7 +21,7 @@
   }
 
   // ---- URL de voto para el QR ----
-  const voteUrl = location.origin + '/';
+  const voteUrl = location.origin + '/vota';
   let qr = null;
   function initQR() {
     $('#qr').innerHTML = '';
