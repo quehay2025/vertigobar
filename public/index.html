@@ -31,7 +31,7 @@
     <input id="nameInput" type="text" maxlength="18" placeholder="Escribe tu nombre" required />
     <button class="btn" type="submit">ENTRAR&nbsp;▸</button>
   </form>
-  <p class="w-foot">Un voto por ronda · sin registro</p>
+  <p class="w-foot">Vota las veces que quieras · cada 5 minutos</p>
 </section>
 
 <!-- ============ PANEL DE VOTACIÓN (GAMEPAD) ============ -->
@@ -40,7 +40,7 @@
     <div class="brand small">
       <span class="b1">VÉRTIGO</span><span class="b2">·BAR</span>
     </div>
-    <div class="v-user">HOLA · <b id="userName">—</b></div>
+    <div class="v-user">HOLA · <b id="userName">—</b> <a href="#" id="changeNameLink" class="change-name">cambiar</a></div>
   </header>
 
   <div class="v-title">
@@ -53,13 +53,18 @@
   <div id="voteMsg" class="v-msg"></div>
 </section>
 
-<!-- ============ ESTADO POST-VOTO / CIERRE ============ -->
+<!-- ============ ESTADO POST-VOTO / CIERRE / COOLDOWN ============ -->
 <section id="done" class="screen">
   <div class="done-box gpu">
     <div id="doneIcon" class="done-icon">✓</div>
     <h2 id="doneTitle">¡Voto registrado!</h2>
     <p id="doneText">Tu voto ya está en la pantalla del bar.</p>
     <div id="myPick" class="my-pick"></div>
+    <div id="cooldownBox" class="cooldown-box">
+      <div class="cooldown-label">PUEDES VOTAR DE NUEVO EN</div>
+      <div id="cooldownTimer" class="cooldown-timer">05:00</div>
+      <div id="cooldownTip" class="cooldown-tip"></div>
+    </div>
   </div>
   <p class="w-foot">Mira la pantalla grande · el vértigo está en marcha</p>
 </section>
@@ -68,6 +73,7 @@
 <div id="flash" class="flash"></div>
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="categories.js"></script>
 <script src="client.js"></script>
 </body>
 </html>

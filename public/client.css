@@ -58,6 +58,7 @@ body::after {
 .v-head { display: flex; justify-content: space-between; align-items: center; }
 .v-user { font-size: .8rem; color: var(--text-dim); letter-spacing: 1px; }
 .v-user b { color: var(--orange); }
+.change-name { color: var(--text-dim); text-decoration: underline; font-size: .72rem; margin-left: 4px; }
 .v-title { display: flex; align-items: center; justify-content: space-between; margin: 18px 2px 14px; }
 .v-title span { font-family: var(--font-mono); font-size: 1.05rem; }
 .v-live { display: flex; align-items: center; gap: 6px; font-size: .7rem; color: var(--neon); letter-spacing: 2px; }
@@ -121,6 +122,12 @@ body::after {
 .v-msg { text-align: center; color: var(--text-dim); font-size: .85rem; min-height: 20px; margin-top: 12px; letter-spacing: .5px; }
 .v-msg.err { color: #ff5a5a; }
 
+.pad-empty {
+  flex: 1; display: flex; align-items: center; justify-content: center; text-align: center;
+  color: var(--text-dim); font-size: .95rem; padding: 30px; border: 1.5px dashed var(--line);
+  border-radius: var(--radius-lg); line-height: 1.5;
+}
+
 /* ---------- Post-voto / cierre ---------- */
 #done { justify-content: center; align-items: center; text-align: center; gap: 24px; }
 .done-box { display: flex; flex-direction: column; align-items: center; gap: 12px; }
@@ -139,6 +146,15 @@ body::after {
   border: 1.5px solid var(--gold); box-shadow: var(--glow-gold);
   font-weight: 700; font-size: 1.1rem;
 }
+
+.cooldown-box {
+  margin-top: 20px; padding: 16px 24px; border-radius: var(--radius-lg);
+  border: 1.5px solid var(--neon); box-shadow: var(--glow-neon);
+  display: none; flex-direction: column; align-items: center; gap: 4px; max-width: 300px;
+}
+.cooldown-label { font-family: var(--font-mono); font-size: .68rem; letter-spacing: 2px; color: var(--text-dim); }
+.cooldown-timer { font-family: var(--font-mono); font-size: 2.6rem; font-weight: 800; color: var(--neon); text-shadow: var(--glow-neon); line-height: 1.1; }
+.cooldown-tip { font-size: .82rem; color: var(--text-dim); text-align: center; margin-top: 6px; max-width: 240px; }
 
 /* ---------- Flash global ---------- */
 .flash { position: fixed; inset: 0; background: var(--white); opacity: 0; pointer-events: none; z-index: 50; }

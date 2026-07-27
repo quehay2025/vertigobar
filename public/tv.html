@@ -68,13 +68,17 @@
     <aside class="tv-side">
       <div class="side-glow"></div>
       <h2 class="side-h">ESCANEA<br>PARA VOTAR</h2>
-      <p class="side-sub">Elige la siguiente canción</p>
+      <p class="side-sub" id="sideSub">Elige la siguiente canción</p>
       <div class="qr-frame">
         <div id="qr"></div>
         <span class="qr-corner tl"></span><span class="qr-corner tr"></span>
         <span class="qr-corner bl"></span><span class="qr-corner br"></span>
       </div>
       <div class="side-url" id="voteUrl">—</div>
+      <div class="side-show">
+        <span class="show-label">EN VIVO AHORA</span>
+        <span class="show-name" id="liveArtist">—</span>
+      </div>
       <div class="side-show">
         <span class="show-label">PRÓXIMO SHOW</span>
         <span class="show-name" id="nextShow">—</span>
@@ -106,6 +110,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
+<script src="categories.js"></script>
 <script src="tv.js"></script>
 </body>
 </html>

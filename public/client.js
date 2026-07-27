@@ -1,5 +1,8 @@
 /* =========================================================================
    VÉRTIGO BAR — Cliente (mobile)
+   Modelo de voto: cada dispositivo puede votar una vez cada 5 minutos
+   (VOTE_COOLDOWN_MS en el servidor), sin importar de qué tema/ciclo se trate.
+   El nombre y el cooldown viven en LocalStorage para sobrevivir recargas.
    ========================================================================= */
 (() => {
   const socket = io();
@@ -10,42 +13,45 @@
     vote: $('#vote'),
     done: $('#done')
   };
+  const pad = $('#pad');
   function show(name) {
     Object.values(screens).forEach(s => s.classList.remove('active'));
     screens[name].classList.add('active');
   }
 
-  // ---- Identidad anti-spam (LocalStorage) ----
+  const TIPS = [
+    '🍺 Aprovecha para pedir otra bebida — cuando vuelvas, tu voto te estará esperando.',
+    '🎉 Estira las piernas y saluda a alguien nuevo. Ya casi puedes votar de nuevo.',
+    '🥤 Buen momento para recargar el vaso. Vuelve en un ratito.',
+    '🔥 El vértigo sigue en marcha en la pantalla grande. Disfruta y ya vuelves a votar.'
+  ];
+
+  // ---- Identidad + estado persistido en LocalStorage ----
   let clientId = localStorage.getItem('vertigo_cid');
   let userName = localStorage.getItem('vertigo_name') || '';
-  let currentRoundId = null;
-  let currentCycle = 0;
-  let myVote = null; // { key, songId }  key = `${roundId}:${cycle}`
+  let retryAt = Number(localStorage.getItem('vertigo_retry_at') || 0);
+  let lastVote = null;
+  try { lastVote = JSON.parse(localStorage.getItem('vertigo_last_vote') || 'null'); } catch { lastVote = null; }
+  let cooldownTip = null;
+  let cooldownInterval = null;
 
-  // La clave de voto incluye el ciclo: al cumplirse un tema el ciclo sube
-  // y el cliente se desbloquea para volver a votar el siguiente.
-  const voteKey = () => `${currentRoundId}:${currentCycle}`;
-  const hasVoted = () => !!myVote && myVote.key === voteKey();
-
-  function loadMyVote() {
-    try { myVote = JSON.parse(localStorage.getItem('vertigo_vote') || 'null'); }
-    catch { myVote = null; }
-  }
-  function saveMyVote(v) {
-    myVote = v;
-    localStorage.setItem('vertigo_vote', JSON.stringify(v));
-  }
-  loadMyVote();
+  const isLocked = () => retryAt > Date.now();
 
   let state = null;
+  const catCfg = () => window.vertigoCategory(state ? state.category : 'otro');
 
-  // ---- Registro con el servidor ----
+  // ---- Registro con el servidor (fuente de verdad del cooldown) ----
   function registrar() {
     socket.emit('registrar_cliente', clientId, res => {
       clientId = res.clientId;
       localStorage.setItem('vertigo_cid', clientId);
+      retryAt = res.retryAt || 0;
+      if (retryAt) localStorage.setItem('vertigo_retry_at', String(retryAt));
+      else localStorage.removeItem('vertigo_retry_at');
+      if (userName) enterMain();
     });
   }
+  socket.on('connect', registrar);
 
   // ---------------------------------------------------------------------
   //  BIENVENIDA
@@ -56,60 +62,73 @@
     if (!v) return;
     userName = v;
     localStorage.setItem('vertigo_name', userName);
-    enterVote();
+    enterMain();
   });
 
-  function enterVote() {
+  $('#changeNameLink').addEventListener('click', e => {
+    e.preventDefault();
+    userName = '';
+    localStorage.removeItem('vertigo_name');
+    $('#nameInput').value = '';
+    show('welcome');
+  });
+
+  // Punto de entrada principal: decide si mostrar el pad o el cooldown.
+  function enterMain() {
     $('#userName').textContent = userName;
-    if (state) renderPad();
-    // ¿ya voté en este ciclo?
-    if (hasVoted()) {
-      goDone(false);
+    if (isLocked()) {
+      goVoted({ freshVote: false });
     } else {
+      renderPad();
       show('vote');
     }
   }
 
+  if (userName) enterMain();
+
   // ---------------------------------------------------------------------
   //  PAD DE VOTACIÓN
   // ---------------------------------------------------------------------
-  const pad = $('#pad');
-
   function renderPad() {
-    if (!state) return;
-    $('#roundTitle').textContent = state.title || 'Elige la siguiente canción';
+    if (!state || !state.items || !state.items.length) {
+      $('#roundTitle').textContent = state ? catCfg().promptLabel : 'Esperando la próxima ronda…';
+      pad.innerHTML = `<div class="pad-empty">${state
+        ? `Todavía no hay ${catCfg().itemLabelPlural.toLowerCase()} en votación. Espera un momento.`
+        : 'Todavía no hay ninguna votación activa. Mira la pantalla del bar para el próximo show.'}</div>`;
+      pad.classList.remove('locked');
+      $('#voteMsg').textContent = '';
+      return;
+    }
+    $('#roundTitle').textContent = state.title || catCfg().promptLabel;
     // Orden fijo por id para que los botones no salten en el cliente
-    const songs = [...state.songs].sort((a, b) => a.id.localeCompare(b.id));
+    const items = [...state.items].sort((a, b) => a.id.localeCompare(b.id));
     pad.innerHTML = '';
-    songs.forEach((s, i) => {
+    items.forEach((it, i) => {
       const btn = document.createElement('button');
       btn.className = 'song-btn gpu';
-      btn.dataset.id = s.id;
+      btn.dataset.id = it.id;
+      const sub = catCfg().subtitleField ? (it[catCfg().subtitleField] || '') : (it.genre || it.artist || '');
       btn.innerHTML = `
         <span class="num">${i + 1}</span>
         <span class="meta">
-          <span class="t">${escapeHtml(s.title)}</span>
-          <span class="a">${escapeHtml(s.artist || '')}</span>
+          <span class="t">${escapeHtml(it.title)}</span>
+          <span class="a">${escapeHtml(sub)}</span>
         </span>
         <span class="chevron">▸</span>`;
       btn.addEventListener('pointerdown', ev => ripple(btn, ev));
-      btn.addEventListener('click', () => votar(s.id, btn));
+      btn.addEventListener('click', () => votar(it.id, btn));
       pad.appendChild(btn);
     });
     applyLockState();
   }
 
   function applyLockState() {
-    const voted = hasVoted();
+    if (!state || !state.items || !state.items.length) return;
     const closed = state && !state.open;
-    pad.classList.toggle('locked', !!voted || !!closed);
-    [...pad.children].forEach(btn => {
-      btn.classList.toggle('picked', voted && btn.dataset.id === myVote.songId);
-    });
+    pad.classList.toggle('locked', closed);
     const msg = $('#voteMsg');
     if (closed) { msg.textContent = 'Votación cerrada · mira la pantalla'; msg.classList.remove('err'); }
-    else if (voted) { msg.textContent = 'Ya votaste · espera el siguiente tema'; msg.classList.remove('err'); }
-    else msg.textContent = 'Toca un tema para votar';
+    else { msg.classList.remove('err'); msg.textContent = `Toca ${catCfg().article} ${catCfg().itemLabel.toLowerCase()} para votar`; }
   }
 
   function ripple(btn, ev) {
@@ -125,114 +144,163 @@
   }
 
   let sending = false;
-  function votar(songId, btn) {
-    if (sending || pad.classList.contains('locked')) return;
+  function votar(itemId, btn) {
+    if (sending || pad.classList.contains('locked') || isLocked()) return;
     sending = true;
     btn.classList.add('pressed');
     setTimeout(() => btn.classList.remove('pressed'), 350);
 
-    socket.emit('votar', { clientId, songId, name: userName }, res => {
+    socket.emit('votar', { clientId, itemId, name: userName }, res => {
       sending = false;
       if (res && res.ok) {
-        saveMyVote({ key: voteKey(), songId });
+        retryAt = res.retryAt;
+        localStorage.setItem('vertigo_retry_at', String(retryAt));
+        const it = (state.items || []).find(i => i.id === itemId);
+        lastVote = it ? {
+          id: it.id, title: it.title,
+          sub: catCfg().subtitleField ? (it[catCfg().subtitleField] || '') : (it.genre || it.artist || ''),
+          icon: catCfg().icon
+        } : null;
+        localStorage.setItem('vertigo_last_vote', JSON.stringify(lastVote));
+        cooldownTip = null;
         if (navigator.vibrate) navigator.vibrate([20, 40, 30]);
-        applyLockState();
-        setTimeout(() => goDone(false), 450);
+        setTimeout(() => goVoted({ freshVote: true }), 400);
+      } else if (res?.error === 'en_espera' && res.retryAt) {
+        retryAt = res.retryAt;
+        localStorage.setItem('vertigo_retry_at', String(retryAt));
+        goVoted({ freshVote: false });
       } else {
         const msg = $('#voteMsg');
         msg.classList.add('err');
         msg.textContent = ({
-          ya_voto: 'Ya habías votado en este ciclo',
           votacion_cerrada: 'La votación está cerrada',
-          tema_invalido: 'Tema no válido'
+          item_invalido: 'Opción no válida'
         })[res?.error] || 'No se pudo registrar el voto';
-        // si el server dice que ya votó, bloquea igual
-        if (res?.error === 'ya_voto') { saveMyVote({ key: voteKey(), songId: null }); applyLockState(); }
       }
     });
   }
 
   // ---------------------------------------------------------------------
-  //  ESTADO POST-VOTO / CIERRE
+  //  PANTALLA DE VOTO REGISTRADO / COOLDOWN
   // ---------------------------------------------------------------------
-  function goDone(isWin) {
-    const song = state && myVote ? state.songs.find(s => s.id === myVote.songId) : null;
-    const done = $('#done');
-    if (isWin && myVote && state && state.winnerId === myVote.songId) {
-      done.classList.add('win');
-      $('#doneIcon').textContent = '★';
-      $('#doneTitle').textContent = '¡GANÓ TU TEMA!';
-      $('#doneText').textContent = 'Tu elección se lleva la ronda. Sube el volumen.';
-    } else if (isWin) {
-      done.classList.remove('win');
-      $('#doneIcon').textContent = '✓';
-      $('#doneTitle').textContent = 'Ronda cerrada';
-      $('#doneText').textContent = state && state.winnerId
-        ? `Ganó: ${winnerLabel()}`
-        : 'Gracias por participar.';
-    } else {
-      done.classList.remove('win');
-      $('#doneIcon').textContent = '✓';
-      $('#doneTitle').textContent = '¡Voto registrado!';
-      $('#doneText').textContent = 'Tu voto ya está en la pantalla del bar.';
-    }
-    $('#myPick').innerHTML = song ? `🎵 ${escapeHtml(song.title)} · ${escapeHtml(song.artist || '')}` : '';
-    $('#myPick').style.display = song ? 'block' : 'none';
+  function goVoted({ freshVote }) {
+    $('#done').classList.remove('win');
+    $('#doneIcon').textContent = (lastVote && lastVote.icon) || catCfg().icon;
+    $('#doneTitle').textContent = freshVote ? '¡Voto registrado!' : 'Ya votaste';
+    $('#doneText').textContent = freshVote
+      ? 'Tu voto ya está en la pantalla del bar.'
+      : 'Tu último voto sigue en pie mientras esperas.';
+    renderMyPick();
+    renderCooldown();
     show('done');
   }
 
+  function goRoundConcluded() {
+    if (!userName) return;
+    const won = !!(lastVote && state && state.winnerId === lastVote.id);
+    $('#done').classList.toggle('win', won);
+    if (won) {
+      $('#doneIcon').textContent = '★';
+      $('#doneTitle').textContent = '¡GANÓ TU ELECCIÓN!';
+      $('#doneText').textContent = 'Tu elección se lleva la ronda. Sube el volumen.';
+    } else {
+      $('#doneIcon').textContent = '✓';
+      $('#doneTitle').textContent = 'Ronda cerrada';
+      $('#doneText').textContent = state && state.winnerId ? `Ganó: ${winnerLabel()}` : 'Gracias por participar.';
+    }
+    renderMyPick();
+    renderCooldown();
+    show('done');
+  }
+
+  function renderMyPick() {
+    const el = $('#myPick');
+    if (lastVote) {
+      el.innerHTML = `${lastVote.icon} ${escapeHtml(lastVote.title)}${lastVote.sub ? ' · ' + escapeHtml(lastVote.sub) : ''}`;
+      el.style.display = 'block';
+    } else {
+      el.innerHTML = ''; el.style.display = 'none';
+    }
+  }
+
   function winnerLabel() {
-    const w = state && state.songs.find(s => s.id === state.winnerId);
-    return w ? `${w.title} — ${w.artist || ''}` : '';
+    const w = state && (state.items || []).find(it => it.id === state.winnerId);
+    if (!w) return '';
+    const sub = catCfg().subtitleField ? w[catCfg().subtitleField] : (w.genre || w.artist || '');
+    return sub ? `${w.title} — ${sub}` : w.title;
+  }
+
+  // ---------------------------------------------------------------------
+  //  CUENTA REGRESIVA DEL COOLDOWN
+  // ---------------------------------------------------------------------
+  function renderCooldown() {
+    const box = $('#cooldownBox');
+    if (isLocked()) {
+      box.style.display = 'flex';
+      if (!cooldownTip) cooldownTip = TIPS[Math.floor(Math.random() * TIPS.length)];
+      $('#cooldownTip').textContent = cooldownTip;
+      startCooldownTicker();
+    } else {
+      box.style.display = 'none';
+      stopCooldownTicker();
+    }
+  }
+  function startCooldownTicker() {
+    stopCooldownTicker();
+    tickCooldown();
+    cooldownInterval = setInterval(tickCooldown, 1000);
+  }
+  function stopCooldownTicker() {
+    clearInterval(cooldownInterval);
+    cooldownInterval = null;
+  }
+  function tickCooldown() {
+    const remaining = retryAt - Date.now();
+    if (remaining <= 0) {
+      stopCooldownTicker();
+      retryAt = 0;
+      localStorage.removeItem('vertigo_retry_at');
+      $('#cooldownBox').style.display = 'none';
+      onCooldownEnd();
+      return;
+    }
+    const mm = Math.floor(remaining / 60000);
+    const ss = Math.floor((remaining % 60000) / 1000);
+    $('#cooldownTimer').textContent = `${mm}:${String(ss).padStart(2, '0')}`;
+  }
+  function onCooldownEnd() {
+    if (!screens.done.classList.contains('active')) return; // el usuario ya navegó a otro lado
+    if (state && state.open && state.items && state.items.length) {
+      renderPad();
+      show('vote');
+    } else {
+      $('#doneIcon').textContent = catCfg().icon;
+      $('#doneTitle').textContent = '¡Ya puedes votar de nuevo!';
+      $('#doneText').textContent = state && state.open ? 'Espera el próximo tema en pantalla.' : 'Espera a que empiece la próxima votación.';
+      $('#myPick').style.display = 'none';
+    }
   }
 
   // ---------------------------------------------------------------------
   //  SOCKETS
   // ---------------------------------------------------------------------
-  socket.on('connect', registrar);
+  function onStateUpdate(s) {
+    state = s;
+    if (screens.vote.classList.contains('active')) renderPad();
+  }
 
-  socket.on('estado_actual', s => {
-    if (!s) return;
-    const prevRound = currentRoundId;
-    const prevCycle = currentCycle;
-    state = s; currentRoundId = s.id; currentCycle = s.cycle || 0;
-    // nueva ronda o nuevo ciclo (tema cumplido) -> el cliente se desbloquea
-    const reset = (prevRound && prevRound !== currentRoundId) || (prevCycle !== currentCycle);
-    if (reset && userName && s.open) { renderPad(); show('vote'); }
-    if (screens.vote.classList.contains('active') || screens.done.classList.contains('active')) renderPad();
-    applyLockStateSafe();
-  });
-
-  socket.on('voto_recibido', ({ state: s }) => { state = s; applyLockStateSafe(); });
-  socket.on('rebase_ocurrido', ({ state: s }) => { state = s; });
-
-  // El artista cumplió un tema: nuevo ciclo -> vuelve a la pantalla de voto
-  socket.on('tema_cumplido', ({ title, state: s }) => {
-    state = s; currentCycle = s.cycle || 0;
-    if (userName && s.open) {
-      renderPad(); show('vote');
-      const msg = $('#voteMsg');
-      msg.classList.remove('err');
-      msg.textContent = `✓ "${title}" ya se hizo · ¡vota el siguiente!`;
-    }
-  });
-  socket.on('tema_reactivado', ({ state: s }) => { state = s; if (screens.vote.classList.contains('active')) renderPad(); });
-
-  socket.on('ronda_iniciada', s => {
-    state = s; currentRoundId = s.id; currentCycle = s.cycle || 0;
-    $('#done').classList.remove('win');
-    if (userName) { renderPad(); show('vote'); }
-  });
+  socket.on('estado_actual', onStateUpdate);
+  socket.on('voto_recibido', ({ state: s }) => onStateUpdate(s));
+  socket.on('rebase_ocurrido', ({ state: s }) => onStateUpdate(s));
+  socket.on('tema_cumplido', ({ state: s }) => onStateUpdate(s));
+  socket.on('tema_reactivado', ({ state: s }) => onStateUpdate(s));
+  socket.on('ronda_iniciada', s => onStateUpdate(s));
 
   socket.on('ronda_concluida', ({ state: s }) => {
-    state = s; currentRoundId = s.id;
+    state = s;
     flash();
-    if (userName) setTimeout(() => goDone(true), 250);
+    if (userName) setTimeout(goRoundConcluded, 250);
   });
-
-  function applyLockStateSafe() {
-    if (screens.vote.classList.contains('active')) applyLockState();
-  }
 
   // ---------------------------------------------------------------------
   //  UTILIDADES
@@ -245,6 +313,6 @@
     return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
-  // Si ya tenía nombre guardado, precargar input
+  // Si ya tenía nombre guardado, precargar input (por si vuelve a la bienvenida)
   if (userName) $('#nameInput').value = userName;
 })();

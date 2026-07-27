@@ -11,8 +11,14 @@
   const ROW_GAP = () => parseFloat(getComputedStyle(barsEl).gap) || 16;
 
   let state = null;
-  let rowById = new Map();     // songId -> elemento .bar-row
+  let rowById = new Map();     // itemId -> elemento .bar-row
   let orderIds = [];           // orden actual de ids (de arriba a abajo)
+
+  const catCfg = () => window.vertigoCategory(state ? state.category : 'otro');
+  function itemSub(it) {
+    const c = catCfg();
+    return c.subtitleField ? (it[c.subtitleField] || '') : (it.genre || it.artist || '');
+  }
 
   // ---- URL de voto para el QR ----
   const voteUrl = location.origin + '/';
@@ -34,30 +40,42 @@
   function buildRows() {
     barsEl.innerHTML = '';
     rowById.clear();
-    const songs = state.songs; // vienen ordenadas por ranking desde el server
-    songs.forEach(s => {
+    if (!state || !state.items || !state.items.length) {
+      const empty = document.createElement('div');
+      empty.className = 'bars-empty';
+      empty.textContent = state
+        ? `Esperando ${catCfg().itemLabelPlural.toLowerCase()} para votar…`
+        : 'Esperando el próximo show…';
+      barsEl.appendChild(empty);
+      orderIds = [];
+      updateStats();
+      return;
+    }
+    const items = state.items; // vienen ordenados por ranking desde el server
+    items.forEach(it => {
       const row = document.createElement('div');
       row.className = 'bar-row gpu';
-      row.dataset.id = s.id;
+      row.dataset.id = it.id;
+      const sub = itemSub(it);
       row.innerHTML = `
         <div class="shock"></div>
         <div class="bar-shell">
           <div class="bar-fill"></div>
-          <div class="bar-rank">${s.rank}</div>
+          <div class="bar-rank">${it.rank}</div>
           <div class="bar-info">
-            <div class="bar-title">${escapeHtml(s.title)}</div>
-            <div class="bar-artist">${escapeHtml(s.artist || '')}</div>
+            <div class="bar-title">${escapeHtml(it.title)}</div>
+            <div class="bar-artist">${escapeHtml(sub)}</div>
           </div>
           <div class="bar-stats">
-            <div class="bar-votes">${s.votes}</div>
-            <div class="bar-pct">${s.pct}%</div>
+            <div class="bar-votes">${it.votes}</div>
+            <div class="bar-pct">${it.pct}%</div>
           </div>
           <div class="bar-badge"></div>
         </div>`;
       barsEl.appendChild(row);
-      rowById.set(s.id, row);
+      rowById.set(it.id, row);
     });
-    orderIds = songs.map(s => s.id);
+    orderIds = items.map(it => it.id);
     layout(false);
     updateStats();
   }
@@ -81,26 +99,27 @@
   }
 
   function updateStats() {
-    if (!state) return;
+    if (!state) { $('#totalVotes').textContent = 0; return; }
     $('#totalVotes').textContent = state.total;
-    const leaderId = state.songs[0]?.id;
-    const second = state.songs[1];
-    const duelClose = second && state.songs[0] && (state.songs[0].votes - second.votes) <= 3 && state.songs[0].votes > 0;
+    const items = state.items || [];
+    const leaderId = items[0]?.id;
+    const second = items[1];
+    const duelClose = second && items[0] && (items[0].votes - second.votes) <= 3 && items[0].votes > 0;
 
-    state.songs.forEach(s => {
-      const row = rowById.get(s.id);
+    items.forEach(it => {
+      const row = rowById.get(it.id);
       if (!row) return;
-      row.querySelector('.bar-votes').textContent = s.votes;
-      row.querySelector('.bar-pct').textContent = s.pct + '%';
-      row.querySelector('.bar-rank').textContent = s.rank;
+      row.querySelector('.bar-votes').textContent = it.votes;
+      row.querySelector('.bar-pct').textContent = it.pct + '%';
+      row.querySelector('.bar-rank').textContent = it.rank;
       const fill = row.querySelector('.bar-fill');
-      const maxVotes = state.songs[0]?.votes || 1;
-      const ratio = maxVotes > 0 ? s.votes / maxVotes : 0;
+      const maxVotes = items[0]?.votes || 1;
+      const ratio = maxVotes > 0 ? it.votes / maxVotes : 0;
       fill.style.transform = `scaleX(${Math.max(0.02, ratio)})`;
-      row.classList.toggle('leader', s.id === leaderId && s.votes > 0);
-      row.classList.toggle('duel', duelClose && s.id === second.id);
-      row.classList.toggle('rank2', s.rank === 2);
-      row.classList.toggle('rank3', s.rank === 3);
+      row.classList.toggle('leader', it.id === leaderId && it.votes > 0);
+      row.classList.toggle('duel', duelClose && it.id === second.id);
+      row.classList.toggle('rank2', it.rank === 2);
+      row.classList.toggle('rank3', it.rank === 3);
     });
     updateFire();
   }
@@ -108,9 +127,9 @@
   // Llama real (naranja=1°, azul=2°, verde=3°) que envuelve el % cargado de la barra
   function updateFire() {
     rowById.forEach((row, id) => {
-      const song = state.songs.find(s => s.id === id);
+      const item = (state?.items || []).find(it => it.id === id);
       const fill = row.querySelector('.bar-fill');
-      const shouldHaveFire = !!song && song.rank <= 3 && song.votes > 0;
+      const shouldHaveFire = !!item && item.rank <= 3 && item.votes > 0;
       const has = fill.querySelector('.fire');
       if (shouldHaveFire && !has) {
         const fire = document.createElement('div');
@@ -125,7 +144,7 @@
 
   // Reordena orderIds según nuevo ranking del state y anima
   function reorder() {
-    const newOrder = state.songs.map(s => s.id);
+    const newOrder = (state.items || []).map(it => it.id);
     const changed = newOrder.some((id, i) => orderIds[i] !== id);
     orderIds = newOrder;
     layout(true);
@@ -135,8 +154,8 @@
   // ---------------------------------------------------------------------
   //  EFECTOS
   // ---------------------------------------------------------------------
-  function shockwave(songId) {
-    const row = rowById.get(songId);
+  function shockwave(itemId) {
+    const row = rowById.get(itemId);
     if (!row) return;
     row.classList.remove('hit'); void row.offsetWidth; row.classList.add('hit');
     setTimeout(() => row.classList.remove('hit'), 520);
@@ -161,17 +180,51 @@
 
   function ticker(html) { const t = $('#ticker'); t.style.opacity = 0; setTimeout(() => { t.innerHTML = html; t.style.opacity = 1; }, 200); }
 
+  function updateSideInfo() {
+    $('#sideSub').textContent = catCfg().promptLabel;
+    $('#liveArtist').textContent = state && state.artistName ? `${catCfg().icon} ${state.artistName}` : '—';
+    if (!state) ticker('Escanea el código y vota en cuanto arranque el show');
+  }
+
+  // ---- Próximo show: cuenta regresiva en vivo ----
+  let nextShowInfo = null;
+  let nsTickInterval = null;
+  function renderNextShow() {
+    clearInterval(nsTickInterval);
+    const el = $('#nextShow');
+    if (!nextShowInfo) { el.textContent = '—'; return; }
+    if (!nextShowInfo.targetAt) { el.textContent = nextShowInfo.label; return; }
+    const tick = () => {
+      const remaining = nextShowInfo.targetAt - Date.now();
+      if (remaining <= 0) {
+        el.innerHTML = `${escapeHtml(nextShowInfo.label)} <span class="ns-now">¡ya casi!</span>`;
+        return;
+      }
+      const h = Math.floor(remaining / 3600000);
+      const m = Math.floor((remaining % 3600000) / 60000);
+      const s = Math.floor((remaining % 60000) / 1000);
+      const hh = h > 0 ? h + ':' : '';
+      el.innerHTML = `${escapeHtml(nextShowInfo.label)} <span class="ns-timer">${hh}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}</span>`;
+    };
+    tick();
+    nsTickInterval = setInterval(tick, 1000);
+  }
+  socket.on('proximo_show_actualizado', info => { nextShowInfo = info; renderNextShow(); });
+
   // ---------------------------------------------------------------------
   //  K.O. / GANADOR
   // ---------------------------------------------------------------------
   function showKO() {
-    const w = state.songs.find(s => s.id === state.winnerId) || state.songs[0];
+    const items = state.items || [];
+    const w = items.find(it => it.id === state.winnerId) || items[0];
     if (!w) return;
     barsEl.classList.add('settled');
     orderIds.forEach(id => rowById.get(id)?.classList.toggle('winner', id === w.id));
     flash();
     $('#koTitle').textContent = w.title;
-    $('#koArtist').textContent = w.artist || '';
+    const sub = itemSub(w);
+    $('#koArtist').textContent = sub;
+    $('#koArtist').style.display = sub ? '' : 'none';
     $('#koVotes').textContent = w.votes;
     setTimeout(() => { $('#ko').classList.add('on'); confetti(); }, 350);
   }
@@ -210,29 +263,28 @@
   // ---------------------------------------------------------------------
   //  SOCKETS
   // ---------------------------------------------------------------------
-  // ¿cambió el conjunto de temas activos? (alta/baja/cumplido) -> reconstruir
-  function songSetChanged(s) {
-    const now = new Set(s.songs.map(x => x.id));
+  // ¿cambió el conjunto de ítems activos? (alta/baja/cumplido) -> reconstruir
+  function itemSetChanged(s) {
+    const now = new Set((s.items || []).map(x => x.id));
     if (!state || now.size !== rowById.size) return true;
     for (const id of now) if (!rowById.has(id)) return true;
     return false;
   }
 
   socket.on('estado_actual', s => {
-    if (!s) return;
-    const isNew = !state || state.id !== s.id;
-    const setChanged = songSetChanged(s);
+    const isNew = !state || (s && state.id !== s.id) || (!s && state);
+    const setChanged = s ? itemSetChanged(s) : true;
     state = s;
-    $('#nextShow').textContent = s.nextShow || '';
+    updateSideInfo();
     if (isNew) { hideKO(); buildRows(); }
     else if (setChanged) { buildRows(); }
     else { updateStats(); reorder(); }
-    if (!s.open && s.winnerId) showKO();
+    if (s && !s.open && s.winnerId) showKO();
   });
 
-  // El artista marcó el tema como cumplido: sello + salida, luego se reconstruye
-  socket.on('tema_cumplido', ({ songId, title, state: s }) => {
-    const row = rowById.get(songId);
+  // El artista/staff marcó el ítem como cumplido: sello + salida, luego se reconstruye
+  socket.on('tema_cumplido', ({ itemId, title, state: s }) => {
+    const row = rowById.get(itemId);
     if (row) {
       const stamp = document.createElement('div');
       stamp.className = 'done-stamp';
@@ -251,17 +303,16 @@
   });
 
   socket.on('ronda_iniciada', s => {
-    state = s; hideKO(); buildRows();
-    $('#nextShow').textContent = s.nextShow || '';
+    state = s; hideKO(); buildRows(); updateSideInfo();
     ticker('Nueva ronda · <b>¡a votar!</b>');
   });
 
-  socket.on('voto_recibido', ({ songId, name, songTitle, state: s }) => {
+  socket.on('voto_recibido', ({ itemId, name, itemTitle, state: s }) => {
     state = s;
-    shockwave(songId);
+    shockwave(itemId);
     updateStats();
-    const changed = reorder();
-    if (name) ticker(`<b>${escapeHtml(name)}</b> votó por <b>${escapeHtml(songTitle)}</b>`);
+    reorder();
+    if (name) ticker(`<b>${escapeHtml(name)}</b> votó por <b>${escapeHtml(itemTitle)}</b>`);
   });
 
   socket.on('rebase_ocurrido', ({ state: s, subioId }) => {
@@ -269,8 +320,8 @@
     updateStats();
     reorder();
     turboDrift(subioId);
-    const song = s.songs.find(x => x.id === subioId);
-    if (song) ticker(`🔥 <b>${escapeHtml(song.title)}</b> toma la delantera · SORPASSO`);
+    const item = (s.items || []).find(x => x.id === subioId);
+    if (item) ticker(`🔥 <b>${escapeHtml(item.title)}</b> toma la delantera · SORPASSO`);
   });
 
   socket.on('empate_detectado', ({ state: s }) => {
