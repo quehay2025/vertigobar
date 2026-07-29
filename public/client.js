@@ -1,6 +1,6 @@
 /* =========================================================================
-   VÉRTIGO BAR — Cliente (mobile)
-   Modelo de voto: cada dispositivo puede votar una vez cada 5 minutos
+   VÉRTIGO - GASTRO & PUB — Cliente (mobile)
+   Modelo de voto: cada dispositivo puede votar una vez cada 3 minutos
    (VOTE_COOLDOWN_MS en el servidor), sin importar de qué tema/ciclo se trate.
    El nombre y el cooldown viven en LocalStorage para sobrevivir recargas.
    ========================================================================= */
@@ -20,10 +20,11 @@
   }
 
   const TIPS = [
-    '🍺 Aprovecha para pedir otra bebida — cuando vuelvas, tu voto te estará esperando.',
+    '🍺 Aprovecha para pedir otra cerveza — cuando vuelvas, tu voto te estará esperando.',
     '🎉 Estira las piernas y saluda a alguien nuevo. Ya casi puedes votar de nuevo.',
-    '🥤 Buen momento para recargar el vaso. Vuelve en un ratito.',
-    '🔥 El vértigo sigue en marcha en la pantalla grande. Disfruta y ya vuelves a votar.'
+    '🍻 Buen momento para recargar tu cerveza. Vuelve en un ratito.',
+    '🔥 El vértigo sigue en marcha en la pantalla grande. Disfruta y ya vuelves a votar.',
+    '📱 Escanea el código QR de tu mesa y haz tu pedido 😉'
   ];
 
   // ---- Identidad + estado persistido en LocalStorage ----
@@ -143,15 +144,28 @@
     if (navigator.vibrate) navigator.vibrate(12);
   }
 
+  // Bloqueo optimista: apenas se toca un botón, TODO el pad se desactiva de
+  // inmediato (antes de esperar al servidor) para que no se puedan tocar
+  // dos canciones seguidas mientras el primer voto todavía viaja.
   let sending = false;
   function votar(itemId, btn) {
     if (sending || pad.classList.contains('locked') || isLocked()) return;
     sending = true;
-    btn.classList.add('pressed');
-    setTimeout(() => btn.classList.remove('pressed'), 350);
+    pad.classList.add('sending');
+    btn.classList.add('sending-active', 'pressed');
+    const chevron = btn.querySelector('.chevron');
+    if (chevron) chevron.textContent = '···';
+    const msg = $('#voteMsg');
+    msg.classList.remove('err');
+    msg.textContent = 'Enviando tu voto…';
+    if (navigator.vibrate) navigator.vibrate(12);
 
     socket.emit('votar', { clientId, itemId, name: userName }, res => {
       sending = false;
+      pad.classList.remove('sending');
+      btn.classList.remove('sending-active', 'pressed');
+      if (chevron) chevron.textContent = '▸';
+
       if (res && res.ok) {
         retryAt = res.retryAt;
         localStorage.setItem('vertigo_retry_at', String(retryAt));
@@ -163,14 +177,14 @@
         } : null;
         localStorage.setItem('vertigo_last_vote', JSON.stringify(lastVote));
         cooldownTip = null;
+        msg.textContent = '✓ Voto registrado';
         if (navigator.vibrate) navigator.vibrate([20, 40, 30]);
-        setTimeout(() => goVoted({ freshVote: true }), 400);
+        setTimeout(() => goVoted({ freshVote: true }), 350);
       } else if (res?.error === 'en_espera' && res.retryAt) {
         retryAt = res.retryAt;
         localStorage.setItem('vertigo_retry_at', String(retryAt));
         goVoted({ freshVote: false });
       } else {
-        const msg = $('#voteMsg');
         msg.classList.add('err');
         msg.textContent = window.vertigoError(res?.error);
       }

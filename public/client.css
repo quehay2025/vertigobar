@@ -1,5 +1,5 @@
 /* =========================================================================
-   VÉRTIGO BAR — Vista Cliente (Mobile-First)
+   VÉRTIGO - GASTRO & PUB — Vista Cliente (Mobile-First)
    ========================================================================= */
 /* Fondo neón en perspectiva (CSS puro, ligero para móvil) */
 body::after {
@@ -118,6 +118,14 @@ body::after {
 /* Estado BLOQUEADO/DESACTIVADO */
 .pad.locked .song-btn:not(.picked) { opacity: .38; filter: grayscale(.5); pointer-events: none; }
 .pad.locked .song-btn { cursor: default; }
+
+/* Estado "enviando": se activa apenas se toca un botón, antes de que
+   responda el servidor, para que no se puedan tocar dos canciones seguidas. */
+.pad.sending .song-btn { pointer-events: none; cursor: default; }
+.pad.sending .song-btn:not(.sending-active) { opacity: .32; filter: grayscale(.6); }
+.song-btn.sending-active { border-color: var(--neon); box-shadow: var(--glow-neon); }
+.song-btn.sending-active .chevron { color: var(--neon); animation: chevron-pulse .9s ease-in-out infinite; }
+@keyframes chevron-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
 
 .v-msg { text-align: center; color: var(--text-dim); font-size: .85rem; min-height: 20px; margin-top: 12px; letter-spacing: .5px; }
 .v-msg.err { color: #ff5a5a; }

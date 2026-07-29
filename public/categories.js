@@ -1,5 +1,5 @@
 /* =========================================================================
-   VÉRTIGO BAR — Categorías de artista (browser)
+   VÉRTIGO - GASTRO & PUB — Categorías de artista (browser)
    IMPORTANTE: copia sincronizada a mano con categories.js (raíz, servidor).
    Se carga como <script> plano (no módulo) para que lo usen admin/artist/
    client/tv sin build step.

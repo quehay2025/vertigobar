@@ -1,5 +1,5 @@
 /* =========================================================================
-   VÉRTIGO BAR — Vista Artista
+   VÉRTIGO - GASTRO & PUB — Vista Artista
    ========================================================================= */
 .gate, .panel { position: relative; z-index: 1; max-width: 620px; margin: 0 auto;
   min-height: 100dvh; padding: 26px 18px calc(26px + env(safe-area-inset-bottom)); }

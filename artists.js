@@ -1,5 +1,5 @@
 // =============================================================================
-//  VÉRTIGO BAR — Store de artistas (perfiles + repertorio persistente)
+//  VÉRTIGO - GASTRO & PUB — Store de artistas (perfiles + repertorio persistente)
 //  Mismo patrón que el estado de `round` en server.js: fuente de verdad en
 //  memoria para tiempo real, con persistencia opcional a Mongo si hay URI.
 // =============================================================================
@@ -29,7 +29,7 @@ async function persist(artist) {
     await ArtistModel.findOneAndUpdate(
       { id: artist.id },
       {
-        id: artist.id, name: artist.name, category: artist.category, code: artist.code,
+        id: artist.id, name: artist.name, handle: artist.handle || '', category: artist.category, code: artist.code,
         repertoire: artist.repertoire,
         createdAt: new Date(artist.createdAt), updatedAt: new Date(artist.updatedAt)
       },
@@ -46,7 +46,7 @@ export async function restoreFromDB() {
     const docs = await ArtistModel.find({});
     for (const d of docs) {
       indexArtist({
-        id: d.id, name: d.name, category: d.category, code: d.code,
+        id: d.id, name: d.name, handle: d.handle || '', category: d.category, code: d.code,
         repertoire: (d.repertoire || []).map(i => ({ id: i.id, title: i.title, artist: i.artist || '', genre: i.genre || '' })),
         createdAt: d.createdAt?.getTime() || Date.now(),
         updatedAt: d.updatedAt?.getTime() || Date.now()
@@ -71,12 +71,19 @@ export function listArtists() {
   return [...artistsById.values()].sort((a, b) => b.createdAt - a.createdAt);
 }
 
-export async function createArtist({ name, category }) {
+// Guarda el @usuario sin el "@" (la UI lo antepone al mostrarlo) para no
+// terminar con "@@usuario" si alguien lo escribe con o sin arroba.
+function normalizeHandle(handle) {
+  return (handle || '').trim().replace(/^@+/, '').slice(0, 40);
+}
+
+export async function createArtist({ name, category, handle } = {}) {
   if (!name || !name.trim()) return { error: 'nombre_requerido' };
   if (!isValidCategory(category)) return { error: 'categoria_invalida' };
   const artist = {
     id: nanoid(10),
     name: name.trim().slice(0, 60),
+    handle: normalizeHandle(handle),
     category,
     code: generateCode(),
     repertoire: [],
@@ -84,6 +91,21 @@ export async function createArtist({ name, category }) {
     updatedAt: Date.now()
   };
   indexArtist(artist);
+  await persist(artist);
+  return { artist };
+}
+
+// Edición de datos del artista (no toca código ni repertorio). Solo admin.
+export async function updateArtist(artistId, { name, handle } = {}) {
+  const artist = artistsById.get(artistId);
+  if (!artist) return { error: 'artista_invalido' };
+  if (name !== undefined) {
+    const n = name.trim();
+    if (!n) return { error: 'nombre_requerido' };
+    artist.name = n.slice(0, 60);
+  }
+  if (handle !== undefined) artist.handle = normalizeHandle(handle);
+  artist.updatedAt = Date.now();
   await persist(artist);
   return { artist };
 }
@@ -150,14 +172,14 @@ export async function removeItem(artistId, itemId) {
 // Payload público para el propio artista (incluye repertorio completo, sin código)
 export function publicArtist(a) {
   if (!a) return null;
-  return { id: a.id, name: a.name, category: a.category, repertoire: a.repertoire, createdAt: a.createdAt };
+  return { id: a.id, name: a.name, handle: a.handle || '', category: a.category, repertoire: a.repertoire, createdAt: a.createdAt };
 }
 
 // Payload para el panel de operador (incluye código, sin repertorio completo)
 export function adminArtist(a) {
   if (!a) return null;
   return {
-    id: a.id, name: a.name, category: a.category, code: a.code,
+    id: a.id, name: a.name, handle: a.handle || '', category: a.category, code: a.code,
     repertoireCount: a.repertoire.length, createdAt: a.createdAt
   };
 }

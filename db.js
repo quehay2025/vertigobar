@@ -26,6 +26,7 @@ const repertoireItemSchema = new mongoose.Schema({
 const artistSchema = new mongoose.Schema({
   id: { type: String, index: true, unique: true },
   name: String,
+  handle: String,
   category: String,
   code: { type: String, index: true, unique: true },
   repertoire: [repertoireItemSchema],

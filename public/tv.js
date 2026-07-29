@@ -1,5 +1,5 @@
 /* =========================================================================
-   VÉRTIGO BAR — Pantalla del Bar (TV)
+   VÉRTIGO - GASTRO & PUB — Pantalla del Bar (TV)
    Orquesta: voto_recibido (shockwave), rebase_ocurrido (turbo drift),
              empate_detectado (duelo), tema_cumplido (celebración de 30s,
              se repite toda la noche — no hay "un solo ganador")

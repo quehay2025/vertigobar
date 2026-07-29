@@ -1,5 +1,5 @@
 /* =========================================================================
-   VÉRTIGO BAR — Panel del Artista (código personal + repertorio persistente)
+   VÉRTIGO - GASTRO & PUB — Panel del Artista (código personal + repertorio persistente)
    ========================================================================= */
 (() => {
   const socket = io();
@@ -49,7 +49,7 @@
   function openPanel() {
     $('#gate').style.display = 'none';
     $('#panel').classList.add('on');
-    $('#artistBadge').textContent = `${cat().icon} ${artist.name} · ${cat().label}`;
+    $('#artistBadge').textContent = `${cat().icon} ${artist.name}${artist.handle ? ' · @' + artist.handle : ''} · ${cat().label}`;
     $('#addSummary').textContent = cat().addCta;
     renderAddFields();
     renderRepertoire();
@@ -150,7 +150,7 @@
     if (!live) {
       $('#notLiveMsg').textContent = (state && state.artistId)
         ? `Ahora está en vivo: ${state.artistName}`
-        : 'No hay ninguna ronda activa en este momento.';
+        : 'No hay ningún show en vivo en este momento.';
       return;
     }
 

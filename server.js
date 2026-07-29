@@ -23,8 +23,9 @@ const ADMIN_KEY = process.env.ADMIN_KEY || 'vertigo-admin';
 
 // Cada dispositivo (clientId) puede votar una vez por ventana de tiempo,
 // sin importar de qué ítem/ciclo/ronda se trate (mantiene a la gente
-// participando toda la noche, en vez de "un voto y listo").
-const VOTE_COOLDOWN_MS = 5 * 60 * 1000;
+// participando toda la noche, en vez de "un voto y listo"). 3 minutos ≈
+// duración típica de una canción.
+const VOTE_COOLDOWN_MS = 3 * 60 * 1000;
 
 // ---------------------------------------------------------------------------
 //  ESTADO EN MEMORIA (fuente de verdad para tiempo real; Mongo persiste)
@@ -281,9 +282,16 @@ io.on('connection', socket => {
   });
 
   // ----------------------------- ADMIN: artistas -----------------------------
-  socket.on('admin_crear_artista', async ({ key, name, category } = {}, ack) => {
+  socket.on('admin_crear_artista', async ({ key, name, handle, category } = {}, ack) => {
     if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
-    const result = await artists.createArtist({ name, category });
+    const result = await artists.createArtist({ name, handle, category });
+    if (result.error) return ack?.({ ok: false, error: result.error });
+    ack?.({ ok: true, artist: artists.adminArtist(result.artist) });
+  });
+
+  socket.on('admin_editar_artista', async ({ key, artistId, name, handle } = {}, ack) => {
+    if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
+    const result = await artists.updateArtist(artistId, { name, handle });
     if (result.error) return ack?.({ ok: false, error: result.error });
     ack?.({ ok: true, artist: artists.adminArtist(result.artist) });
   });
@@ -291,6 +299,15 @@ io.on('connection', socket => {
   socket.on('admin_listar_artistas', ({ key } = {}, ack) => {
     if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
     ack?.({ ok: true, artists: artists.listArtists().map(a => artists.adminArtist(a)) });
+  });
+
+  // Trae el perfil completo (incluye repertorio) para que el operador pueda
+  // ver/editar el repertorio de cualquier artista desde /admin.
+  socket.on('admin_ver_artista', ({ key, artistId } = {}, ack) => {
+    if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
+    const artist = artists.findById(artistId);
+    if (!artist) return ack?.({ ok: false, error: 'artista_invalido' });
+    ack?.({ ok: true, artist: artists.publicArtist(artist) });
   });
 
   socket.on('admin_regenerar_codigo_artista', async ({ key, artistId } = {}, ack) => {
@@ -425,7 +442,7 @@ async function boot() {
   }
 
   server.listen(PORT, () => {
-    console.log(`\n  VERTIGO BAR  ->  http://localhost:${PORT}`);
+    console.log(`\n  VERTIGO - GASTRO & PUB  ->  http://localhost:${PORT}`);
     console.log(`  Inicio  : http://localhost:${PORT}/`);
     console.log(`  Cliente : http://localhost:${PORT}/vota`);
     console.log(`  TV      : http://localhost:${PORT}/tv`);

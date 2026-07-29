@@ -1,4 +1,4 @@
-# 🔥 VÉRTIGO BAR — Votación en vivo por artista y categoría
+# 🔥 Vértigo - Gastro & Pub — Votación en vivo por artista y categoría
 
 Sistema de votación en vivo con estética **arcade / HUD de Esports**. Cada artista tiene un
 **perfil persistente** (con su propio repertorio) y el operador elige quién está en vivo esta
@@ -57,7 +57,7 @@ mano [`public/categories.js`](public/categories.js) (browser).
    falta volver a escribirlo.
 3. **El operador elige quién está en vivo** en `/admin` → "Iniciar ronda" → selecciona el
    artista → su repertorio se copia a la votación de esta noche.
-4. La gente vota desde el móvil (cada 5 min); el contador sube **al instante** para todos —
+4. La gente vota desde el móvil (cada 3 min); el contador sube **al instante** para todos —
    público, TV y el propio artista en su panel, sin que nadie tenga que refrescar nada — y el
    ranking se reordena en la TV con turbo drift cuando hay sorpasso.
 5. El artista decide cuándo interpretar el ítem que está arriba (o cualquier otro) y, al
@@ -77,7 +77,7 @@ mano [`public/categories.js`](public/categories.js) (browser).
 > corrigen el horario sin tener que reescribirlo.
 
 > **Anti-spam por tiempo, no por ronda:** cada dispositivo (`clientId` + LocalStorage) puede
-> votar una vez cada 5 minutos (`VOTE_COOLDOWN_MS` en `server.js`), sin importar de qué
+> votar una vez cada 3 minutos (`VOTE_COOLDOWN_MS` en `server.js`), sin importar de qué
 > tema/ciclo/artista se trate. Tras votar, el cliente ve una cuenta regresiva en vivo con un
 > mensaje invitando a seguir consumiendo, y se desbloquea solo al llegar a 0 — así la gente
 > vota durante toda la noche en vez de una sola vez. El nombre se guarda en el dispositivo, así

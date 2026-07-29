@@ -1,5 +1,5 @@
 // =============================================================================
-//  VÉRTIGO BAR — Categorías de artista (servidor)
+//  VÉRTIGO - GASTRO & PUB — Categorías de artista (servidor)
 //  IMPORTANTE: mantener este archivo sincronizado con public/categories.js
 //  (la versión de browser es una copia simple, sin import/export, porque los
 //  scripts públicos se cargan como <script> plano, no como módulos).

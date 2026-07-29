@@ -1,5 +1,5 @@
 /* =========================================================================
-   VÉRTIGO BAR — Sistema de diseño (Arcade / Esports HUD)
+   VÉRTIGO - GASTRO & PUB — Sistema de diseño (Arcade / Esports HUD)
    ========================================================================= */
 :root {
   /* Paleta */
@@ -66,6 +66,9 @@ body {
   color: var(--orange);
   text-shadow: var(--glow-orange);
 }
+/* Variante compacta: para headers angostos donde el nombre completo compite
+   por espacio con otro contenido (ej. "HOLA · nombre" en /vota). */
+.brand .b2.b2-long { font-size: .62em; letter-spacing: .5px; white-space: nowrap; }
 .brand-sub {
   font-family: var(--font-mono); font-size: .6rem; letter-spacing: 6px;
   color: var(--text-dim); border-top: 1px solid var(--line);
