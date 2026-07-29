@@ -24,9 +24,33 @@ const uri = process.env.MONGODB_URI;
 if (!uri) { console.error('Falta MONGODB_URI'); process.exit(1); }
 await mongoose.connect(uri, { serverSelectionTimeoutMS: 8000 });
 
-const artist = await ArtistModel.findOne({ name: /tierra canela/i });
-if (!artist) { console.error('No existe el artista Tierra Canela'); process.exit(1); }
-if (!artist.repertoire.length) { console.error('Tierra Canela no tiene repertorio'); process.exit(1); }
+// Repertorio base de la demo (se crea si el artista aún no existe en esta base).
+const REPERTORIO = [
+  { title: 'El Taxista', artist: 'Tierra Canela' },
+  { title: 'Ya No Vuelvo Contigo', artist: 'Tierra Canela' },
+  { title: 'Amor de los Dos', artist: 'Tierra Canela' },
+  { title: 'La Pollera Colorá', artist: 'Tierra Canela' },
+  { title: 'Quiero un Amor Así', artist: 'Tierra Canela' }
+];
+const rnd = (n) => Math.random().toString(36).slice(2, 2 + n);
+
+let artist = await ArtistModel.findOne({ name: /tierra canela/i });
+if (!artist) {
+  artist = new ArtistModel({
+    id: rnd(10), name: 'Tierra Canela', handle: 'tierracanela.ec',
+    category: 'musico', code: String(Math.floor(100000 + Math.random() * 900000)),
+    repertoire: REPERTORIO.map(r => ({ id: rnd(6), title: r.title, artist: r.artist, genre: '' })),
+    createdAt: new Date(), updatedAt: new Date()
+  });
+  await artist.save();
+  console.log(`Artista Tierra Canela creado (code=${artist.code})`);
+}
+if (!artist.repertoire.length) {
+  artist.repertoire = REPERTORIO.map(r => ({ id: rnd(6), title: r.title, artist: r.artist, genre: '' }));
+  artist.updatedAt = new Date();
+  await artist.save();
+  console.log('Repertorio de Tierra Canela poblado');
+}
 
 // Toma la ronda más reciente de este artista, o crea una nueva si no hay.
 let round = await RoundModel.findOne({ artistId: artist.id }).sort({ createdAt: -1 });
