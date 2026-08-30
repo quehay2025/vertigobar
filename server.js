@@ -248,6 +248,10 @@ io.on('connection', socket => {
 app.get('/api/estado', (req, res) => res.json(publicState(round)));
 app.get('/api/health', (req, res) => res.json({ ok: true, db: isDbEnabled(), round: round?.id || null }));
 
+// Landing informativo -> public/index.html (servido por express.static)
+// La experiencia de votacion en vivo vive en /arcade
+app.get('/arcade', (req, res) => res.sendFile(path.join(__dirname, 'public', 'arcade.html')));
+
 app.get('/tv', (req, res) => res.sendFile(path.join(__dirname, 'public', 'tv.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/artist', (req, res) => res.sendFile(path.join(__dirname, 'public', 'artist.html')));
@@ -277,7 +281,8 @@ async function boot() {
 
   server.listen(PORT, () => {
     console.log(`\n  VERTIGO BAR  ->  http://localhost:${PORT}`);
-    console.log(`  Cliente : http://localhost:${PORT}/`);
+    console.log(`  Home    : http://localhost:${PORT}/`);
+    console.log(`  Arcade  : http://localhost:${PORT}/arcade`);
     console.log(`  TV      : http://localhost:${PORT}/tv`);
     console.log(`  Artista : http://localhost:${PORT}/artista  (key: ${ARTIST_KEY})`);
     console.log(`  Admin   : http://localhost:${PORT}/admin    (key: ${ADMIN_KEY})`);

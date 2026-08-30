@@ -1,0 +1,214 @@
+/* =========================================================================
+   VÉRTIGO GASTRO PUB — Landing "Próximamente"
+   Telón rojo entreabierto que deja ver parte del local + cartel colgado.
+   ========================================================================= */
+:root {
+  --cream:      #EBD6BB;
+  --cream-2:    #F7E9D6;
+  --brown:      #A9702B;
+  --brown-deep: #6E4517;
+  --ink:        #0A0A0B;
+
+  --velvet-0:   #2B0709;   /* fondo del pliegue */
+  --velvet-1:   #4E0C11;
+  --velvet-2:   #6B1318;   /* cresta iluminada */
+  --velvet-3:   #170305;   /* sombra profunda */
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--ink);
+  color: var(--cream);
+  font-family: 'Rajdhani', 'Segoe UI', system-ui, sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+.layer { position: fixed; inset: 0; }
+
+/* ------------------------------------------------- EL LOCAL, DETRÁS ----- */
+/* Nítido pero en penumbra: solo se ve la franja que el telón deja abierta. */
+#bgLocal {
+  background: var(--ink) 38% 55%/cover no-repeat;
+  filter: brightness(.78) saturate(1.08) contrast(1.06);
+  transform: scale(1.08);
+  animation: drift 44s linear infinite;
+  z-index: 0;
+}
+/* Órbita cerrada: el último fotograma es idéntico al primero */
+@keyframes drift {
+  0%   { transform: scale(1.08) translate3d( .9%,  0%,   0); }
+  25%  { transform: scale(1.08) translate3d( 0%,   .6%,  0); }
+  50%  { transform: scale(1.08) translate3d(-.9%,  0%,   0); }
+  75%  { transform: scale(1.08) translate3d( 0%,  -.6%,  0); }
+  100% { transform: scale(1.08) translate3d( .9%,  0%,   0); }
+}
+
+/* Luz cálida que se escapa por la abertura */
+#glow {
+  z-index: 1; pointer-events: none;
+  background: radial-gradient(46% 66% at 50% 52%, rgba(255,196,120,.26), transparent 74%);
+  opacity: calc(.35 + var(--open, 0) * .65);
+}
+
+/* --------------------------------------------------------- EL TELÓN ----- */
+.curtain { z-index: 2; pointer-events: none; }
+
+.panel {
+  position: absolute; top: 0; bottom: 0;
+  width: 43%;
+  background:
+    /* brillo del terciopelo en las crestas */
+    linear-gradient(180deg, rgba(255,255,255,.10) 0%, transparent 26%, transparent 62%, rgba(0,0,0,.55) 100%),
+    /* pliegues verticales irregulares */
+    repeating-linear-gradient(90deg,
+      var(--velvet-3) 0px,
+      var(--velvet-1) 22px,
+      var(--velvet-2) 40px,
+      var(--velvet-1) 58px,
+      var(--velvet-0) 76px,
+      var(--velvet-3) 96px);
+  background-size: auto, 132px 100%;
+  box-shadow: 0 0 90px rgba(0,0,0,.75) inset;
+  will-change: transform;
+}
+
+/* El borde interior cae en curva, como tela pesada recogida */
+.panel.left  { left:  0; transform-origin: left  top; border-radius: 0 34% 12% 0 / 0 8% 4% 0; }
+.panel.right { right: 0; transform-origin: right top; border-radius: 34% 0 0 12% / 8% 0 0 4%; }
+
+/* Sombra que proyecta el filo del telón sobre la abertura */
+.panel::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 56px;
+  pointer-events: none;
+}
+.panel.left::after  { right: 0; background: linear-gradient(90deg, transparent, rgba(0,0,0,.85)); }
+.panel.right::after { left: 0;  background: linear-gradient(270deg, transparent, rgba(0,0,0,.85)); }
+
+/* Cenefa superior */
+.valance {
+  position: absolute; top: 0; left: 0; right: 0; height: 9vh; z-index: 3;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.5), transparent 55%, rgba(0,0,0,.6)),
+    repeating-linear-gradient(90deg,
+      var(--velvet-3) 0px, var(--velvet-1) 26px, var(--velvet-2) 46px,
+      var(--velvet-1) 66px, var(--velvet-3) 92px);
+  border-bottom: 2px solid rgba(169,112,43,.5);
+  box-shadow: 0 14px 40px rgba(0,0,0,.7);
+  pointer-events: none;
+}
+
+/* Penumbra bajo el logo: la abertura ilumina y el logotipo debe seguir leyéndose */
+#scrim {
+  z-index: 4; pointer-events: none;
+  background: radial-gradient(44% 24% at 50% 37%, rgba(0,0,0,.62), transparent 72%);
+  opacity: calc(1 - var(--open, 0) * .45);
+}
+
+#vignette {
+  z-index: 4; pointer-events: none;
+  background: radial-gradient(1400px 900px at 50% 48%, transparent 30%, rgba(0,0,0,.72) 100%);
+}
+
+/* -------------------------------------------------------- CONTENIDO ----- */
+.stage {
+  position: relative; z-index: 5;
+  height: 100%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 7vh;
+  padding: 16vh 24px 12vh;
+}
+
+#logo[hidden] { display: none; }
+#logo {
+  width: min(54vw, 460px); height: auto; display: block;
+  filter: drop-shadow(0 0 36px rgba(235,214,187,.30)) drop-shadow(0 12px 34px rgba(0,0,0,.85));
+  animation: breathe 7s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%, 100% { filter: drop-shadow(0 0 30px rgba(235,214,187,.22)) drop-shadow(0 12px 34px rgba(0,0,0,.85)); }
+  50%      { filter: drop-shadow(0 0 50px rgba(235,214,187,.44)) drop-shadow(0 12px 34px rgba(0,0,0,.85)); }
+}
+.logo-fallback {
+  font-family: 'Oswald', 'Rajdhani', sans-serif;
+  font-weight: 700; letter-spacing: .06em; line-height: .9; text-align: center;
+  font-size: clamp(2.6rem, 11vw, 6.5rem); color: var(--cream);
+  text-shadow: 0 0 40px rgba(235,214,187,.3);
+}
+.logo-fallback small {
+  display: block; margin-top: 14px; font-size: clamp(.55rem, 2vw, .9rem);
+  letter-spacing: .55em; color: var(--brown);
+  border-top: 1px solid rgba(169,112,43,.5); padding-top: 10px;
+}
+
+/* ------------------------------------------------ CARTEL COLGADO ------- */
+/* Pivota desde donde lo sujetan las cuerdas: por eso el origen va arriba. */
+.sign-rig {
+  --swing: 0deg;
+  position: relative;
+  transform-origin: 50% -9vh;          /* el punto del que cuelga */
+  transform: rotate(var(--swing));
+  will-change: transform;
+}
+.cords { position: absolute; left: 0; right: 0; bottom: 100%; height: 9vh; }
+.cords span {
+  position: absolute; top: 0; bottom: 0; width: 2px;
+  background: linear-gradient(180deg, rgba(169,112,43,.15), rgba(169,112,43,.75));
+}
+.cords span:first-child { left: 22%; transform: rotate(3.5deg); }
+.cords span:last-child  { right: 22%; transform: rotate(-3.5deg); }
+
+.sign {
+  position: relative;
+  padding: clamp(14px, 2.4vh, 26px) clamp(26px, 6vw, 62px);
+  background: linear-gradient(168deg, #171412 0%, #0D0B0A 60%, #131010 100%);
+  border: 1px solid rgba(169,112,43,.55);
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 6px rgba(10,10,11,.9),
+    0 0 0 7px rgba(169,112,43,.35),
+    0 26px 60px rgba(0,0,0,.85);
+  text-align: center;
+}
+/* argollas */
+.sign::before, .sign::after {
+  content: ''; position: absolute; top: -7px; width: 9px; height: 9px;
+  border: 2px solid rgba(169,112,43,.8); border-radius: 50%;
+  background: #0D0B0A;
+}
+.sign::before { left: 22%; } .sign::after { right: 22%; }
+
+.sign h1 {
+  font-family: 'Oswald', 'Rajdhani', sans-serif;
+  font-weight: 700; text-transform: uppercase;
+  font-size: clamp(1.3rem, 5.4vw, 3rem);
+  letter-spacing: .22em; color: var(--cream);
+  text-shadow: 0 0 26px rgba(235,214,187,.30);
+}
+.sign p {
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid rgba(169,112,43,.35);
+  font-size: clamp(.55rem, 1.9vw, .78rem);
+  letter-spacing: .42em; text-transform: uppercase; color: var(--brown);
+}
+
+/* ------------------------------------------------------------- PIE ----- */
+.foot {
+  position: fixed; left: 0; right: 0; bottom: 22px; z-index: 6;
+  display: flex; justify-content: center;
+  font-size: .72rem; letter-spacing: .3em; text-transform: uppercase;
+}
+.foot a {
+  color: rgba(235,214,187,.62); text-decoration: none;
+  border: 1px solid rgba(169,112,43,.45); border-radius: 999px;
+  padding: 9px 18px; transition: .2s ease; backdrop-filter: blur(6px);
+}
+.foot a:hover { color: var(--cream-2); border-color: var(--brown); background: rgba(169,112,43,.14); }
+
+@media (max-width: 560px) {
+  .panel { width: 45%; }
+  .stage { gap: 5vh; }
+  .foot { font-size: .62rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #bgLocal, #logo { animation: none; }
+}

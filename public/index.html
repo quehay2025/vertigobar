@@ -2,72 +2,50 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<meta name="theme-color" content="#050506" />
-<title>VÉRTIGO BAR — Vota tu canción</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0A0A0B" />
+<title>VÉRTIGO Gastro Pub — Próximamente</title>
+<meta name="description" content="VÉRTIGO Gastro Pub. Muy pronto." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="theme.css" />
-<link rel="stylesheet" href="client.css" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="home.css" />
 </head>
-<body class="hud-grid">
+<body>
 
-<!-- ============ PANTALLA DE BIENVENIDA ============ -->
-<section id="welcome" class="screen active">
-  <div class="w-top">
-    <div class="brand">
-      <span class="b1">VÉRTIGO</span><span class="b2">·BAR</span>
+<!-- El local, detrás del telón -->
+<div class="layer" id="bgLocal"></div>
+<div class="layer" id="glow"></div>
+
+<!-- Telón -->
+<div class="layer curtain" id="curtain" aria-hidden="true">
+  <div class="panel left"  id="panelL"></div>
+  <div class="panel right" id="panelR"></div>
+  <div class="valance"></div>
+</div>
+<div class="layer" id="scrim"></div>
+<div class="layer" id="vignette"></div>
+
+<!-- Logo + cartel -->
+<main class="stage">
+  <img id="logo" src="img/logo.png" alt="VÉRTIGO Gastro Pub" />
+  <div class="logo-fallback" id="logoFallback" hidden>
+    VÉRTIGO<small>Gastro Pub</small>
+  </div>
+
+  <div class="sign-rig" id="signRig">
+    <div class="cords"><span></span><span></span></div>
+    <div class="sign">
+      <h1>Próximamente</h1>
+      <p>Muy pronto en la ciudad</p>
     </div>
-    <div class="brand-sub">LIVE&nbsp;VOTE</div>
   </div>
+</main>
 
-  <div class="w-hero">
-    <div class="w-ring gpu"></div>
-    <h1>¿Cómo te<br><span>llamas?</span></h1>
-    <p class="w-lead">Tu voto mueve la pista. Entra al vértigo.</p>
-  </div>
+<footer class="foot">
+  <a href="/arcade">Zona Arcade</a>
+</footer>
 
-  <form id="nameForm" class="w-form" autocomplete="off">
-    <input id="nameInput" type="text" maxlength="18" placeholder="Escribe tu nombre" required />
-    <button class="btn" type="submit">ENTRAR&nbsp;▸</button>
-  </form>
-  <p class="w-foot">Un voto por ronda · sin registro</p>
-</section>
-
-<!-- ============ PANEL DE VOTACIÓN (GAMEPAD) ============ -->
-<section id="vote" class="screen">
-  <header class="v-head">
-    <div class="brand small">
-      <span class="b1">VÉRTIGO</span><span class="b2">·BAR</span>
-    </div>
-    <div class="v-user">HOLA · <b id="userName">—</b></div>
-  </header>
-
-  <div class="v-title">
-    <span id="roundTitle">Elige la siguiente canción</span>
-    <div class="v-live"><i></i> EN VIVO</div>
-  </div>
-
-  <div id="pad" class="pad"><!-- botones inyectados --></div>
-
-  <div id="voteMsg" class="v-msg"></div>
-</section>
-
-<!-- ============ ESTADO POST-VOTO / CIERRE ============ -->
-<section id="done" class="screen">
-  <div class="done-box gpu">
-    <div id="doneIcon" class="done-icon">✓</div>
-    <h2 id="doneTitle">¡Voto registrado!</h2>
-    <p id="doneText">Tu voto ya está en la pantalla del bar.</p>
-    <div id="myPick" class="my-pick"></div>
-  </div>
-  <p class="w-foot">Mira la pantalla grande · el vértigo está en marcha</p>
-</section>
-
-<!-- capa de flash para feedback global -->
-<div id="flash" class="flash"></div>
-
-<script src="/socket.io/socket.io.js"></script>
-<script src="client.js"></script>
+<script src="home.js"></script>
 </body>
 </html>
