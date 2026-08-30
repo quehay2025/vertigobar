@@ -1,5 +1,5 @@
 /* =========================================================================
-   VÉRTIGO BAR — Vista Cliente (Mobile-First)
+   VÉRTIGO - GASTRO & PUB — Vista Cliente (Mobile-First)
    ========================================================================= */
 /* Fondo neón en perspectiva (CSS puro, ligero para móvil) */
 body::after {
@@ -58,6 +58,7 @@ body::after {
 .v-head { display: flex; justify-content: space-between; align-items: center; }
 .v-user { font-size: .8rem; color: var(--text-dim); letter-spacing: 1px; }
 .v-user b { color: var(--orange); }
+.change-name { color: var(--text-dim); text-decoration: underline; font-size: .72rem; margin-left: 4px; }
 .v-title { display: flex; align-items: center; justify-content: space-between; margin: 18px 2px 14px; }
 .v-title span { font-family: var(--font-mono); font-size: 1.05rem; }
 .v-live { display: flex; align-items: center; gap: 6px; font-size: .7rem; color: var(--neon); letter-spacing: 2px; }
@@ -118,8 +119,22 @@ body::after {
 .pad.locked .song-btn:not(.picked) { opacity: .38; filter: grayscale(.5); pointer-events: none; }
 .pad.locked .song-btn { cursor: default; }
 
+/* Estado "enviando": se activa apenas se toca un botón, antes de que
+   responda el servidor, para que no se puedan tocar dos canciones seguidas. */
+.pad.sending .song-btn { pointer-events: none; cursor: default; }
+.pad.sending .song-btn:not(.sending-active) { opacity: .32; filter: grayscale(.6); }
+.song-btn.sending-active { border-color: var(--neon); box-shadow: var(--glow-neon); }
+.song-btn.sending-active .chevron { color: var(--neon); animation: chevron-pulse .9s ease-in-out infinite; }
+@keyframes chevron-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+
 .v-msg { text-align: center; color: var(--text-dim); font-size: .85rem; min-height: 20px; margin-top: 12px; letter-spacing: .5px; }
 .v-msg.err { color: #ff5a5a; }
+
+.pad-empty {
+  flex: 1; display: flex; align-items: center; justify-content: center; text-align: center;
+  color: var(--text-dim); font-size: .95rem; padding: 30px; border: 1.5px dashed var(--line);
+  border-radius: var(--radius-lg); line-height: 1.5;
+}
 
 /* ---------- Post-voto / cierre ---------- */
 #done { justify-content: center; align-items: center; text-align: center; gap: 24px; }
@@ -139,6 +154,15 @@ body::after {
   border: 1.5px solid var(--gold); box-shadow: var(--glow-gold);
   font-weight: 700; font-size: 1.1rem;
 }
+
+.cooldown-box {
+  margin-top: 20px; padding: 16px 24px; border-radius: var(--radius-lg);
+  border: 1.5px solid var(--neon); box-shadow: var(--glow-neon);
+  display: none; flex-direction: column; align-items: center; gap: 4px; max-width: 300px;
+}
+.cooldown-label { font-family: var(--font-mono); font-size: .68rem; letter-spacing: 2px; color: var(--text-dim); }
+.cooldown-timer { font-family: var(--font-mono); font-size: 2.6rem; font-weight: 800; color: var(--neon); text-shadow: var(--glow-neon); line-height: 1.1; }
+.cooldown-tip { font-size: .82rem; color: var(--text-dim); text-align: center; margin-top: 6px; max-width: 240px; }
 
 /* ---------- Flash global ---------- */
 .flash { position: fixed; inset: 0; background: var(--white); opacity: 0; pointer-events: none; z-index: 50; }

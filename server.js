@@ -6,6 +6,8 @@ import { nanoid } from 'nanoid';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { connectDB, RoundModel, isDbEnabled } from './db.js';
+import * as artists from './artists.js';
+import { getCategory, sanitizeItemFields } from './categories.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -18,60 +20,85 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
 const ADMIN_KEY = process.env.ADMIN_KEY || 'vertigo-admin';
-const ARTIST_KEY = process.env.ARTIST_KEY || 'vertigo-artista';
 
-// Autoriza acciones de "operador" (admin) o de "artista".
-const isStaff = key => key === ADMIN_KEY || key === ARTIST_KEY;
+// Cada dispositivo (clientId) puede votar una vez por ventana de tiempo,
+// sin importar de qué ítem/ciclo/ronda se trate (mantiene a la gente
+// participando toda la noche, en vez de "un voto y listo"). 3 minutos ≈
+// duración típica de una canción.
+const VOTE_COOLDOWN_MS = 3 * 60 * 1000;
 
 // ---------------------------------------------------------------------------
 //  ESTADO EN MEMORIA (fuente de verdad para tiempo real; Mongo persiste)
 // ---------------------------------------------------------------------------
-// Ronda:
-//   { id, cycle, title, nextShow, open, winnerId, createdAt,
-//     songs: [{ id, title, artist, votes, status:'active'|'done' }],
-//     voters: Set<clientId> }   // votantes del ciclo actual
+// Ronda: la votación es continua durante toda la noche, no hay "un ganador".
+// Cuando un ítem se marca cumplido sus votos se reinician a 0 (cae al fondo
+// del mismo ranking) pero sigue votable — la gente puede pedirlo de nuevo.
+//   { id, cycle, title, open, createdAt,
+//     artistId, artistName, category,
+//     items: [{ id, title, artist, genre, votes }] }
 let round = null;
 
-function defaultSongs() {
-  return [
-    { id: 's1', title: 'Rojo', artist: 'J Balvin' },
-    { id: 's2', title: 'Provenza', artist: 'Karol G' },
-    { id: 's3', title: 'Despecha', artist: 'Rosalia' },
-    { id: 's4', title: 'Bizarrap Vol. 53', artist: 'Bizarrap' }
-  ];
+// clientId -> timestamp (ms) del último voto. Vive fuera de `round` para que
+// el cooldown no se reinicie al cambiar de ciclo, tema o artista en vivo.
+const cooldowns = new Map();
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, ts] of cooldowns) if (now - ts > VOTE_COOLDOWN_MS) cooldowns.delete(id);
+}, 10 * 60 * 1000);
+
+// Próximo show: independiente de la ronda activa (el operador lo actualiza
+// libremente, aunque no haya votación abierta). No se persiste a Mongo: es
+// información de una sola noche y se resetea si el servidor reinicia.
+//   { label: string, targetAt: number|null }  targetAt en ms epoch, o null
+//   si el operador solo puso un texto libre sin horario.
+let nextShowInfo = null;
+
+// ¿El código pertenece al artista que está en vivo ahora mismo?
+function isRoundArtist(code) {
+  if (!round || !round.artistId || !code) return false;
+  const artist = artists.findByCode(code);
+  return !!artist && artist.id === round.artistId;
+}
+// Autoriza acciones sobre la RONDA EN VIVO (marcar cumplido, agregar ad-hoc)
+function isRoundStaff({ key, code } = {}) {
+  return key === ADMIN_KEY || isRoundArtist(code);
+}
+// Autoriza acciones sobre el REPERTORIO de un artista puntual (propio código o staff)
+function canManageArtist(artist, { key, code } = {}) {
+  if (!artist) return false;
+  if (key === ADMIN_KEY) return true;
+  return !!code && artist.code === code;
 }
 
-function newRound(config = {}) {
-  const src = (config.songs && config.songs.length ? config.songs : defaultSongs());
-  return {
+function newRound({ artistId, title } = {}) {
+  const artist = artists.findById(artistId);
+  if (!artist) return { error: 'artista_invalido' };
+  if (!artist.repertoire.length) return { error: 'repertorio_vacio' };
+  const cfg = getCategory(artist.category);
+  const round = {
     id: nanoid(10),
     cycle: 0,
-    title: config.title || 'Elige el siguiente tema',
-    nextShow: config.nextShow || 'Dj Tech-Mix Live (23:00 HS)',
+    title: (title && title.trim()) || cfg.promptLabel,
     open: true,
-    winnerId: null,
+    artistId: artist.id,
+    artistName: artist.name,
+    category: artist.category,
     createdAt: Date.now(),
-    songs: src.map(s => ({
-      id: s.id || nanoid(6),
-      title: s.title,
-      artist: s.artist || '',
-      votes: s.votes || 0,
-      status: s.status || 'active'
-    })),
-    voters: new Set()
+    items: artist.repertoire.map(it => ({
+      id: it.id, title: it.title, artist: it.artist || '', genre: it.genre || '', votes: 0
+    }))
   };
+  return { round };
 }
 
-const activeSongs = r => r.songs.filter(s => s.status === 'active');
-const doneSongs = r => r.songs.filter(s => s.status === 'done');
-
-// Ranking (solo activos), mayor a menor votos; desempata por id estable
-function rankedSongs(r) {
-  return activeSongs(r).sort((a, b) => b.votes - a.votes || a.id.localeCompare(b.id));
+// Ranking, mayor a menor votos; desempata por id estable. Todos los ítems
+// son siempre votables (no hay estado "retirado").
+function rankedItems(r) {
+  return [...r.items].sort((a, b) => b.votes - a.votes || a.id.localeCompare(b.id));
 }
-const totalVotes = r => activeSongs(r).reduce((acc, s) => acc + s.votes, 0);
+const totalVotes = r => r.items.reduce((acc, i) => acc + i.votes, 0);
 
-// Payload publico (nunca expone el Set de voters)
+// Payload publico
 function publicState(r) {
   if (!r) return null;
   const total = totalVotes(r);
@@ -79,16 +106,16 @@ function publicState(r) {
     id: r.id,
     cycle: r.cycle,
     title: r.title,
-    nextShow: r.nextShow,
     open: r.open,
-    winnerId: r.winnerId,
+    artistId: r.artistId,
+    artistName: r.artistName,
+    category: r.category,
     total,
-    songs: rankedSongs(r).map((s, i) => ({
-      id: s.id, title: s.title, artist: s.artist, votes: s.votes,
+    items: rankedItems(r).map((it, i) => ({
+      id: it.id, title: it.title, artist: it.artist, genre: it.genre, votes: it.votes,
       rank: i + 1,
-      pct: total > 0 ? Math.round((s.votes / total) * 100) : 0
-    })),
-    done: doneSongs(r).map(s => ({ id: s.id, title: s.title, artist: s.artist }))
+      pct: total > 0 ? Math.round((it.votes / total) * 100) : 0
+    }))
   };
 }
 
@@ -102,10 +129,10 @@ async function persist(r) {
     await RoundModel.findOneAndUpdate(
       { id: r.id },
       {
-        id: r.id, cycle: r.cycle, title: r.title, nextShow: r.nextShow,
-        open: r.open, winnerId: r.winnerId,
-        songs: r.songs.map(s => ({ id: s.id, title: s.title, artist: s.artist, votes: s.votes, status: s.status })),
-        voters: [...r.voters],
+        id: r.id, cycle: r.cycle, title: r.title,
+        open: r.open,
+        artistId: r.artistId, artistName: r.artistName, category: r.category,
+        items: r.items.map(i => ({ id: i.id, title: i.title, artist: i.artist, genre: i.genre, votes: i.votes })),
         createdAt: new Date(r.createdAt)
       },
       { upsert: true, new: true }
@@ -120,125 +147,260 @@ async function persist(r) {
 // ---------------------------------------------------------------------------
 io.on('connection', socket => {
   socket.emit('estado_actual', publicState(round));
+  socket.emit('proximo_show_actualizado', nextShowInfo);
 
-  // Identidad anti-spam (el cliente guarda el clientId en LocalStorage)
+  // Identidad anti-spam (el cliente guarda el clientId en LocalStorage).
+  // Devuelve el cooldown vigente (si lo hay) para que el cliente recupere
+  // su cuenta regresiva aunque haya recargado la página.
   socket.on('registrar_cliente', (clientId, ack) => {
     const id = clientId && typeof clientId === 'string' ? clientId : nanoid(16);
-    const yaVoto = round ? round.voters.has(id) : false;
-    ack?.({ clientId: id, yaVoto, roundId: round?.id || null, cycle: round?.cycle || 0 });
+    const last = cooldowns.get(id);
+    const retryAt = last ? last + VOTE_COOLDOWN_MS : 0;
+    ack?.({ clientId: id, retryAt, roundId: round?.id || null, cycle: round?.cycle || 0 });
   });
 
   // ----------------------------- VOTO -----------------------------
-  socket.on('votar', async ({ clientId, songId, name } = {}, ack) => {
+  // Un voto cada VOTE_COOLDOWN_MS por dispositivo (clientId), sin importar
+  // ciclo/ítem/ronda. Mantiene a la gente votando toda la noche.
+  socket.on('votar', async ({ clientId, itemId, name } = {}, ack) => {
     if (!round || !round.open) return ack?.({ ok: false, error: 'votacion_cerrada' });
     if (!clientId) return ack?.({ ok: false, error: 'sin_id' });
-    if (round.voters.has(clientId)) return ack?.({ ok: false, error: 'ya_voto' });
-    const song = round.songs.find(s => s.id === songId && s.status === 'active');
-    if (!song) return ack?.({ ok: false, error: 'tema_invalido' });
+    const now = Date.now();
+    const last = cooldowns.get(clientId);
+    if (last && now - last < VOTE_COOLDOWN_MS) {
+      return ack?.({ ok: false, error: 'en_espera', retryAt: last + VOTE_COOLDOWN_MS });
+    }
+    const item = round.items.find(i => i.id === itemId);
+    if (!item) return ack?.({ ok: false, error: 'item_invalido' });
 
     const prevTotal = totalVotes(round);
-    const antes = rankedSongs(round).map(s => s.id);
+    const antes = rankedItems(round).map(i => i.id);
 
     // Contador sube al instante
-    song.votes += 1;
-    round.voters.add(clientId);
+    item.votes += 1;
+    cooldowns.set(clientId, now);
 
-    const despues = rankedSongs(round).map(s => s.id);
+    const despues = rankedItems(round).map(i => i.id);
     const state = publicState(round);
-    ack?.({ ok: true, songId });
+    ack?.({ ok: true, itemId, retryAt: now + VOTE_COOLDOWN_MS });
 
-    io.emit('voto_recibido', { songId, name: name || null, songTitle: song.title, state });
+    io.emit('voto_recibido', { itemId, name: name || null, itemTitle: item.title, state });
 
     // Empate
     const cuenta = {};
     let empate = false;
-    for (const s of activeSongs(round)) {
-      if (s.votes > 0) { cuenta[s.votes] = (cuenta[s.votes] || 0) + 1; if (cuenta[s.votes] > 1) empate = true; }
+    for (const i of round.items) {
+      if (i.votes > 0) { cuenta[i.votes] = (cuenta[i.votes] || 0) + 1; if (cuenta[i.votes] > 1) empate = true; }
     }
     if (empate) io.emit('empate_detectado', { state });
 
     // Rebase / sorpasso
     if (prevTotal > 0 && antes.some((id, i) => despues[i] !== id)) {
-      io.emit('rebase_ocurrido', { state, subioId: songId, antes, despues });
+      io.emit('rebase_ocurrido', { state, subioId: itemId, antes, despues });
     }
     await persist(round);
   });
 
-  // -------------------- ARTISTA: marcar cumplido --------------------
-  // El artista/comediante terminó el tema -> se elimina del ranking,
-  // sus puntos se reinician (0) y podrá re-entrar luego. Empieza un
-  // nuevo ciclo de votación (los votantes se liberan para volver a votar).
-  socket.on('marcar_cumplido', async ({ key, songId } = {}, ack) => {
-    if (!isStaff(key)) return ack?.({ ok: false, error: 'no_autorizado' });
+  // -------------------- ARTISTA/STAFF: marcar cumplido --------------------
+  // El artista ya lo interpretó: sus votos se reinician a 0 (cae al fondo del
+  // mismo ranking, sigue votable toda la noche) y dispara la celebración en
+  // la TV. Esto se repite cada vez que algo llega a #1 y se interpreta -
+  // no hay "un solo ganador de la noche".
+  socket.on('marcar_cumplido', async ({ key, code, itemId } = {}, ack) => {
+    if (!isRoundStaff({ key, code })) return ack?.({ ok: false, error: 'no_autorizado' });
     if (!round) return ack?.({ ok: false, error: 'sin_ronda' });
-    const song = round.songs.find(s => s.id === songId && s.status === 'active');
-    if (!song) return ack?.({ ok: false, error: 'tema_invalido' });
+    const item = round.items.find(i => i.id === itemId);
+    if (!item) return ack?.({ ok: false, error: 'item_invalido' });
 
-    song.status = 'done';
-    song.votes = 0;                 // se reinician los puntos
-    round.cycle += 1;               // nuevo ciclo de votacion
-    round.voters.clear();           // todos pueden volver a votar el siguiente
+    const votesAlCumplirse = item.votes;   // para mostrar en la celebración
+    item.votes = 0;                        // se reinicia, cae al fondo del ranking
+    round.cycle += 1;
 
     const state = publicState(round);
-    io.emit('tema_cumplido', { songId, title: song.title, state });
-    io.emit('estado_actual', state);
+    io.emit('tema_cumplido', {
+      itemId, title: item.title, artist: item.artist, genre: item.genre,
+      votes: votesAlCumplirse, state
+    });
     ack?.({ ok: true, state });
     await persist(round);
   });
 
-  // -------------------- ARTISTA: reactivar tema --------------------
-  socket.on('reactivar_tema', async ({ key, songId } = {}, ack) => {
-    if (!isStaff(key)) return ack?.({ ok: false, error: 'no_autorizado' });
+  // -------------------- ARTISTA/STAFF: agregar ítem ad-hoc a la ronda --------------------
+  // Solo afecta la ronda de esta noche; NO se guarda en el repertorio permanente
+  // (para eso está artista_agregar_item).
+  socket.on('agregar_tema', async ({ key, code, title, artist, genre } = {}, ack) => {
+    if (!isRoundStaff({ key, code })) return ack?.({ ok: false, error: 'no_autorizado' });
     if (!round) return ack?.({ ok: false, error: 'sin_ronda' });
-    const song = round.songs.find(s => s.id === songId && s.status === 'done');
-    if (!song) return ack?.({ ok: false, error: 'tema_invalido' });
-    song.status = 'active';
-    song.votes = 0;
-    const state = publicState(round);
-    io.emit('tema_reactivado', { songId, title: song.title, state });
-    io.emit('estado_actual', state);
-    ack?.({ ok: true, state });
-    await persist(round);
-  });
-
-  // -------------------- ARTISTA/ADMIN: agregar tema --------------------
-  socket.on('agregar_tema', async ({ key, title, artist } = {}, ack) => {
-    if (!isStaff(key)) return ack?.({ ok: false, error: 'no_autorizado' });
-    if (!round) return ack?.({ ok: false, error: 'sin_ronda' });
-    if (!title || !title.trim()) return ack?.({ ok: false, error: 'sin_titulo' });
-    round.songs.push({ id: nanoid(6), title: title.trim(), artist: (artist || '').trim(), votes: 0, status: 'active' });
+    const clean = sanitizeItemFields(round.category, { title, artist, genre });
+    if (!clean) return ack?.({ ok: false, error: 'campos_invalidos' });
+    round.items.push({ id: nanoid(6), ...clean, votes: 0 });
     const state = publicState(round);
     io.emit('estado_actual', state);
     ack?.({ ok: true, state });
     await persist(round);
   });
 
-  // ----------------------------- ADMIN -----------------------------
-  socket.on('admin_abrir_ronda', async ({ key, config } = {}, ack) => {
+  // ----------------------- ARTISTA: login por código -----------------------
+  socket.on('artista_login', (code, ack) => {
+    const artist = artists.findByCode(code);
+    if (!artist) return ack?.({ ok: false, error: 'codigo_invalido' });
+    ack?.({ ok: true, artist: artists.publicArtist(artist) });
+  });
+
+  // ----------------- ARTISTA/STAFF: repertorio persistente -----------------
+  socket.on('artista_agregar_item', async ({ artistId, key, code, fields } = {}, ack) => {
+    const artist = artists.findById(artistId);
+    if (!canManageArtist(artist, { key, code })) return ack?.({ ok: false, error: 'no_autorizado' });
+    const result = await artists.addItem(artistId, fields || {});
+    if (result.error) return ack?.({ ok: false, error: result.error });
+    // Si este artista está en vivo ahora mismo, el ítem nuevo entra también a la ronda.
+    if (round && round.artistId === artistId) {
+      round.items.push({
+        id: result.item.id, title: result.item.title, artist: result.item.artist,
+        genre: result.item.genre, votes: 0
+      });
+      io.emit('estado_actual', publicState(round));
+      await persist(round);
+    }
+    ack?.({ ok: true, artist: artists.publicArtist(result.artist) });
+  });
+
+  socket.on('artista_editar_item', async ({ artistId, itemId, key, code, fields } = {}, ack) => {
+    const artist = artists.findById(artistId);
+    if (!canManageArtist(artist, { key, code })) return ack?.({ ok: false, error: 'no_autorizado' });
+    const result = await artists.updateItem(artistId, itemId, fields || {});
+    if (result.error) return ack?.({ ok: false, error: result.error });
+    ack?.({ ok: true, artist: artists.publicArtist(result.artist) });
+  });
+
+  socket.on('artista_eliminar_item', async ({ artistId, itemId, key, code } = {}, ack) => {
+    const artist = artists.findById(artistId);
+    if (!canManageArtist(artist, { key, code })) return ack?.({ ok: false, error: 'no_autorizado' });
+    const result = await artists.removeItem(artistId, itemId);
+    if (result.error) return ack?.({ ok: false, error: result.error });
+    ack?.({ ok: true, artist: artists.publicArtist(result.artist) });
+  });
+
+  // ----------------------------- ADMIN: artistas -----------------------------
+  socket.on('admin_crear_artista', async ({ key, name, handle, category } = {}, ack) => {
     if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
-    round = newRound(config || {});
+    const result = await artists.createArtist({ name, handle, category });
+    if (result.error) return ack?.({ ok: false, error: result.error });
+    ack?.({ ok: true, artist: artists.adminArtist(result.artist) });
+  });
+
+  socket.on('admin_editar_artista', async ({ key, artistId, name, handle } = {}, ack) => {
+    if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
+    const result = await artists.updateArtist(artistId, { name, handle });
+    if (result.error) return ack?.({ ok: false, error: result.error });
+    ack?.({ ok: true, artist: artists.adminArtist(result.artist) });
+  });
+
+  socket.on('admin_listar_artistas', ({ key } = {}, ack) => {
+    if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
+    ack?.({ ok: true, artists: artists.listArtists().map(a => artists.adminArtist(a)) });
+  });
+
+  // Trae el perfil completo (incluye repertorio) para que el operador pueda
+  // ver/editar el repertorio de cualquier artista desde /admin.
+  socket.on('admin_ver_artista', ({ key, artistId } = {}, ack) => {
+    if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
+    const artist = artists.findById(artistId);
+    if (!artist) return ack?.({ ok: false, error: 'artista_invalido' });
+    ack?.({ ok: true, artist: artists.publicArtist(artist) });
+  });
+
+  socket.on('admin_regenerar_codigo_artista', async ({ key, artistId } = {}, ack) => {
+    if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
+    const result = await artists.regenerateCode(artistId);
+    if (result.error) return ack?.({ ok: false, error: result.error });
+    ack?.({ ok: true, artist: artists.adminArtist(result.artist) });
+  });
+
+  socket.on('admin_eliminar_artista', async ({ key, artistId } = {}, ack) => {
+    if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
+    const result = await artists.deleteArtist(artistId);
+    if (result.error) return ack?.({ ok: false, error: result.error });
+    ack?.({ ok: true });
+  });
+
+  // ----------------------------- ADMIN: ronda -----------------------------
+  socket.on('admin_iniciar_ronda_artista', async ({ key, artistId, title } = {}, ack) => {
+    if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
+    const result = newRound({ artistId, title });
+    if (result.error) return ack?.({ ok: false, error: result.error });
+    round = result.round;
     await persist(round);
     io.emit('ronda_iniciada', publicState(round));
     broadcastState();
     ack?.({ ok: true, state: publicState(round) });
   });
 
+  // Detiene la votación por ahora (ej. cierre de la noche, cambio de artista).
+  // Ya no hay "ganador" que declarar: la votación es continua, sin final.
   socket.on('admin_cerrar_ronda', async ({ key } = {}, ack) => {
     if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
     if (!round) return ack?.({ ok: false, error: 'sin_ronda' });
     round.open = false;
-    round.winnerId = rankedSongs(round)[0]?.id || null;
     await persist(round);
-    io.emit('ronda_concluida', { state: publicState(round), winnerId: round.winnerId });
-    ack?.({ ok: true, winnerId: round.winnerId });
+    io.emit('ronda_concluida', { state: publicState(round) });
+    ack?.({ ok: true });
   });
 
+  // Reinicia los votos de la ronda actual (mismo artista/ítems), sin re-elegirla
   socket.on('admin_reset', async ({ key } = {}, ack) => {
     if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
-    round = newRound();
+    if (!round) return ack?.({ ok: false, error: 'sin_ronda' });
+    round.items.forEach(i => { i.votes = 0; });
+    round.open = true;
+    const state = publicState(round);
+    io.emit('estado_actual', state);
+    ack?.({ ok: true, state });
     await persist(round);
-    broadcastState();
-    ack?.({ ok: true, state: publicState(round) });
+  });
+
+  // -------------------- ADMIN: próximo show (independiente de la ronda) --------------------
+  // mode 'hora': value = "HH:MM" (si ya pasó hoy, se asume mañana).
+  // mode 'duracion': value = minutos desde ahora.
+  // Sin mode/value válido: solo se guarda el texto, sin cuenta regresiva.
+  socket.on('admin_set_next_show', ({ key, label, mode, value } = {}, ack) => {
+    if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
+    const clean = (label || '').trim().slice(0, 80);
+    if (!clean) return ack?.({ ok: false, error: 'sin_titulo' });
+    let targetAt = null;
+    if (mode === 'hora' && /^\d{1,2}:\d{2}$/.test(value || '')) {
+      const [hh, mm] = value.split(':').map(Number);
+      if (hh >= 0 && hh <= 23 && mm >= 0 && mm <= 59) {
+        const d = new Date();
+        d.setSeconds(0, 0);
+        d.setHours(hh, mm);
+        if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 1); // ya pasó -> mañana
+        targetAt = d.getTime();
+      }
+    } else if (mode === 'duracion') {
+      const mins = Number(value);
+      if (Number.isFinite(mins) && mins > 0) targetAt = Date.now() + mins * 60000;
+    }
+    nextShowInfo = { label: clean, targetAt };
+    io.emit('proximo_show_actualizado', nextShowInfo);
+    ack?.({ ok: true, nextShowInfo });
+  });
+
+  // Retraso de último momento: suma minutos al horario ya fijado.
+  socket.on('admin_posponer_next_show', ({ key, minutes } = {}, ack) => {
+    if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
+    if (!nextShowInfo || !nextShowInfo.targetAt) return ack?.({ ok: false, error: 'sin_horario' });
+    const add = Number(minutes) || 0;
+    nextShowInfo = { ...nextShowInfo, targetAt: nextShowInfo.targetAt + add * 60000 };
+    io.emit('proximo_show_actualizado', nextShowInfo);
+    ack?.({ ok: true, nextShowInfo });
+  });
+
+  socket.on('admin_borrar_next_show', ({ key } = {}, ack) => {
+    if (key !== ADMIN_KEY) return ack?.({ ok: false, error: 'no_autorizado' });
+    nextShowInfo = null;
+    io.emit('proximo_show_actualizado', nextShowInfo);
+    ack?.({ ok: true });
   });
 });
 
@@ -248,43 +410,47 @@ io.on('connection', socket => {
 app.get('/api/estado', (req, res) => res.json(publicState(round)));
 app.get('/api/health', (req, res) => res.json({ ok: true, db: isDbEnabled(), round: round?.id || null }));
 
-// Landing informativo -> public/index.html (servido por express.static)
-// La experiencia de votacion en vivo vive en /arcade
+// Portada: landing "Proximamente" (public/index.html, via express.static)
+// La experiencia de votacion en vivo cuelga de /arcade -> /vota
 app.get('/arcade', (req, res) => res.sendFile(path.join(__dirname, 'public', 'arcade.html')));
 
 app.get('/tv', (req, res) => res.sendFile(path.join(__dirname, 'public', 'tv.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/artist', (req, res) => res.sendFile(path.join(__dirname, 'public', 'artist.html')));
 app.get('/artista', (req, res) => res.sendFile(path.join(__dirname, 'public', 'artist.html')));
+app.get('/vota', (req, res) => res.sendFile(path.join(__dirname, 'public', 'vota.html')));
+app.get('/votar', (req, res) => res.sendFile(path.join(__dirname, 'public', 'vota.html')));
 
 // ---------------------------------------------------------------------------
 //  ARRANQUE
 // ---------------------------------------------------------------------------
 async function boot() {
   await connectDB();
+  await artists.restoreFromDB();
   if (isDbEnabled()) {
     try {
       const last = await RoundModel.findOne({}).sort({ createdAt: -1 });
       if (last) {
         round = {
-          id: last.id, cycle: last.cycle || 0, title: last.title, nextShow: last.nextShow,
-          open: last.open, winnerId: last.winnerId,
-          songs: last.songs.map(s => ({ id: s.id, title: s.title, artist: s.artist, votes: s.votes, status: s.status || 'active' })),
-          voters: new Set(last.voters || []),
+          id: last.id, cycle: last.cycle || 0, title: last.title,
+          open: last.open,
+          artistId: last.artistId || null, artistName: last.artistName || '', category: last.category || 'otro',
+          items: (last.items || []).map(i => ({
+            id: i.id, title: i.title, artist: i.artist || '', genre: i.genre || '', votes: i.votes
+          })),
           createdAt: last.createdAt?.getTime() || Date.now()
         };
         console.log(`[boot] ronda restaurada: ${round.id}`);
       }
     } catch (e) { console.error('[boot] restore error:', e.message); }
   }
-  if (!round) round = newRound();
 
   server.listen(PORT, () => {
-    console.log(`\n  VERTIGO BAR  ->  http://localhost:${PORT}`);
-    console.log(`  Home    : http://localhost:${PORT}/`);
-    console.log(`  Arcade  : http://localhost:${PORT}/arcade`);
+    console.log(`\n  VERTIGO - GASTRO & PUB  ->  http://localhost:${PORT}`);
+    console.log(`  Inicio  : http://localhost:${PORT}/`);
+    console.log(`  Cliente : http://localhost:${PORT}/vota`);
     console.log(`  TV      : http://localhost:${PORT}/tv`);
-    console.log(`  Artista : http://localhost:${PORT}/artista  (key: ${ARTIST_KEY})`);
+    console.log(`  Artista : http://localhost:${PORT}/artista  (código personal por artista)`);
     console.log(`  Admin   : http://localhost:${PORT}/admin    (key: ${ADMIN_KEY})`);
     console.log(`  DB      : ${isDbEnabled() ? 'MongoDB conectada' : 'en memoria (sin Mongo)'}\n`);
   });

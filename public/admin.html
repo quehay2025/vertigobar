@@ -3,39 +3,106 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>VÉRTIGO BAR — Control</title>
+<title>Vértigo - Gastro & Pub — Control</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css" />
 <style>
-  .adm { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; padding: 28px 20px 60px; }
+  .adm { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 28px 20px 60px; }
   h1 { font-family: var(--font-mono); font-size: 1.6rem; margin-bottom: 4px; }
   h1 .b2 { color: var(--orange); text-shadow: var(--glow-orange); }
   .sub { color: var(--text-dim); margin-bottom: 22px; font-size: .9rem; }
   .card { background: var(--grad-panel); border: 1.5px solid var(--line); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 18px; }
   .card h2 { font-family: var(--font-mono); font-size: 1rem; color: var(--orange); margin-bottom: 14px; letter-spacing: 1px; }
+  .card-hint { font-size: .8rem; color: var(--text-dim); line-height: 1.5; margin: -6px 0 14px; }
   label { display: block; font-size: .78rem; color: var(--text-dim); margin: 10px 0 4px; letter-spacing: 1px; }
-  input { width: 100%; background: var(--bg-2); border: 1.5px solid var(--line); border-radius: 10px; color: var(--white); padding: 11px 13px; font-family: var(--font); font-size: 1rem; outline: none; }
-  input:focus { border-color: var(--orange); box-shadow: var(--glow-orange); }
-  .song-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  input, select { width: 100%; background: var(--bg-2); border: 1.5px solid var(--line); border-radius: 10px; color: var(--white); padding: 11px 13px; font-family: var(--font); font-size: 1rem; outline: none; }
+  input:focus, select:focus { border-color: var(--orange); box-shadow: var(--glow-orange); }
   .row-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
   .btn.ghost { background: transparent; border: 1.5px solid var(--line); box-shadow: none; color: var(--text); }
   .btn.danger { background: linear-gradient(135deg, #ff3b3b, #a30000); box-shadow: 0 0 18px rgba(255,59,59,.4); }
+  .btn.small { padding: 7px 12px; font-size: .78rem; }
   .status { font-size: .85rem; color: var(--text-dim); margin-top: 10px; min-height: 18px; }
   .status.ok { color: var(--neon); } .status.err { color: #ff5a5a; }
   .live-state { font-family: var(--font-mono); font-size: .85rem; }
   .pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .72rem; font-family: var(--font-mono); }
   .pill.open { background: var(--grad-brand); color: #fff; }
   .pill.closed { background: #333; color: var(--text-dim); }
+  .pill.cat { background: var(--bg-2); border: 1px solid var(--line); color: var(--text-dim); }
   .links a { color: var(--neon); text-decoration: none; margin-right: 16px; font-size: .85rem; }
+
+  .code-reveal { display: none; margin-top: 14px; padding: 14px; border-radius: 12px; border: 1.5px solid var(--orange); background: rgba(255,106,0,.08); }
+  .code-reveal.on { display: block; }
+  .code-reveal .lbl { font-size: .75rem; color: var(--text-dim); letter-spacing: 1px; }
+  .code-reveal .code { font-family: var(--font-mono); font-size: 2rem; letter-spacing: 4px; color: var(--orange); text-shadow: var(--glow-orange); }
+  .code-reveal .name { font-size: .85rem; color: var(--text-dim); margin-top: 4px; }
+
+  .artist-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .artist-row:last-child { border-bottom: none; }
+  .artist-row .info { flex: 1; min-width: 140px; }
+  .artist-row .aname { font-weight: 600; }
+  .artist-row .ameta { font-size: .75rem; color: var(--text-dim); }
+  .artist-row .acode { font-family: var(--font-mono); letter-spacing: 2px; color: var(--neon); }
+  .empty { color: var(--text-dim); font-size: .85rem; padding: 8px 0; }
+
+  .ns-mode { display: flex; gap: 18px; margin: 10px 2px 4px; }
+  .ns-radio { display: flex; align-items: center; gap: 6px; font-size: .85rem; color: var(--text); width: auto; margin: 0; }
+  .ns-radio input { width: auto; padding: 0; }
+
+  .ahandle { color: var(--neon); }
+  .icon-btn {
+    border: 1.5px solid var(--line); background: var(--bg-2); cursor: pointer;
+    border-radius: 8px; padding: 6px 10px; font-size: .85rem; color: var(--text); flex: 0 0 auto;
+  }
+  .icon-btn:hover { border-color: var(--orange); }
+  .edit-fields { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 100%; min-width: 0; margin-top: 8px; }
+  .edit-fields input { flex: 1 1 140px; }
+  .rep-details { width: 100%; margin-top: 10px; }
+  .rep-details summary { cursor: pointer; font-size: .78rem; color: var(--neon); list-style: none; }
+  .rep-details summary::-webkit-details-marker { display: none; }
+  .rep-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .rep-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 8px; flex-wrap: wrap; }
+  .rep-item .info { flex: 1; min-width: 100px; }
+  .rep-item .t { font-weight: 600; font-size: .85rem; }
+  .rep-item .a { font-size: .72rem; color: var(--text-dim); }
+  .rep-add { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .rep-add input { flex: 1 1 100px; }
+
+  .gate-adm {
+    position: relative; z-index: 1; max-width: 380px; margin: 0 auto; min-height: 100dvh;
+    padding: 26px 20px; display: flex; flex-direction: column; justify-content: center;
+    align-items: center; text-align: center; gap: 16px;
+  }
+  .gate-lead { color: var(--text-dim); }
+  .gate-form { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+  .gate-form input {
+    background: var(--bg-2); border: 1.5px solid var(--line); border-radius: 12px;
+    color: var(--white); padding: 14px; font-family: var(--font); font-size: 1.3rem;
+    letter-spacing: 6px; outline: none; text-align: center;
+  }
+  .gate-form input:focus { border-color: var(--orange); box-shadow: var(--glow-orange); }
+  .gate-msg { color: #ff5a5a; min-height: 18px; font-size: .9rem; }
 </style>
 </head>
 <body class="hud-grid">
-<div class="adm">
+
+<!-- Acceso -->
+<section id="gate" class="gate-adm">
   <h1><span class="b1">VÉRTIGO</span><span class="b2">·CONTROL</span></h1>
-  <div class="sub">Panel de operador · rondas y votación</div>
+  <p class="gate-lead">Acceso restringido — ingresa el PIN</p>
+  <form id="pinForm" class="gate-form" autocomplete="off">
+    <input id="pinInput" type="password" inputmode="numeric" maxlength="8" placeholder="PIN de 8 dígitos" />
+    <button class="btn" type="submit">ENTRAR ▸</button>
+  </form>
+  <p id="gateMsg" class="gate-msg"></p>
+</section>
+
+<div class="adm" id="panel" style="display:none;">
+  <h1><span class="b1">VÉRTIGO</span><span class="b2">·CONTROL</span></h1>
+  <div class="sub">Panel de operador · artistas y votación</div>
   <div class="links">
-    <a href="/" target="_blank">▸ Vista cliente</a>
+    <a href="/vota" target="_blank">▸ Vista cliente</a>
     <a href="/tv" target="_blank">▸ Pantalla TV</a>
+    <a href="#" id="logoutLink">↺ Salir</a>
   </div>
 
   <div class="card">
@@ -44,78 +111,401 @@
   </div>
 
   <div class="card">
-    <h2>CLAVE DE OPERADOR</h2>
-    <input id="key" type="password" placeholder="ADMIN_KEY" />
+    <h2>ARTISTAS</h2>
+    <label>Nombre</label>
+    <input id="artistName" placeholder="Ej: Los Vértigos" />
+    <label>Usuario / Instagram (opcional)</label>
+    <input id="artistHandle" placeholder="@losvertigos" />
+    <label>Categoría</label>
+    <select id="artistCategory"></select>
+    <div class="row-actions">
+      <button class="btn" id="createArtistBtn">➕ Crear artista</button>
+      <button class="btn ghost" id="refreshArtistsBtn">🔄 Actualizar lista</button>
+    </div>
+    <div class="code-reveal" id="codeReveal">
+      <div class="lbl">CÓDIGO DE ACCESO — entrégaselo al artista</div>
+      <div class="code" id="codeRevealValue">——————</div>
+      <div class="name" id="codeRevealName"></div>
+    </div>
+    <div class="status" id="artistStatus"></div>
+    <div id="artistList" style="margin-top:14px;"></div>
   </div>
 
   <div class="card">
-    <h2>NUEVA RONDA</h2>
-    <label>Título de la ronda</label>
-    <input id="title" placeholder="Elige la siguiente canción" />
-    <label>Próximo show</label>
-    <input id="nextShow" placeholder="Dj Tech-Mix Live (23:00 HS)" />
-    <label>Canciones (4)</label>
-    <div id="songs"></div>
+    <h2>INICIAR SHOW</h2>
+    <p class="card-hint">Elige quién sube al escenario ahora — esto abre la votación de su
+      repertorio para el público. Solo tú (operador) puedes hacer esto; el artista no puede
+      iniciar su propio show, solo gestionar su repertorio y marcar temas cumplidos.</p>
+    <label>Artista en vivo</label>
+    <select id="roundArtist"><option value="">— Selecciona un artista —</option></select>
+    <label>Título de la votación</label>
+    <input id="title" placeholder="Se autocompleta según la categoría" />
     <div class="row-actions">
-      <button class="btn" id="openBtn">▸ ABRIR RONDA</button>
+      <button class="btn" id="openBtn">▸ INICIAR SHOW</button>
       <button class="btn ghost" id="resetBtn">↺ Reiniciar votos</button>
-      <button class="btn danger" id="closeBtn">■ CERRAR (K.O.)</button>
+      <button class="btn danger" id="closeBtn">■ CERRAR VOTACIÓN</button>
     </div>
     <div class="status" id="status"></div>
+  </div>
+
+  <div class="card">
+    <h2>PRÓXIMO SHOW</h2>
+    <label>¿Quién / qué sigue?</label>
+    <input id="nsLabel" placeholder="Ej: DJ Tech-Mix Live" />
+    <label>¿Cuándo empieza?</label>
+    <div class="ns-mode">
+      <label class="ns-radio"><input type="radio" name="nsMode" value="hora" checked> Hora exacta</label>
+      <label class="ns-radio"><input type="radio" name="nsMode" value="duracion"> En cuánto tiempo</label>
+    </div>
+    <input id="nsHora" type="time" />
+    <input id="nsMinutos" type="number" min="1" placeholder="Minutos desde ahora" style="display:none;" />
+    <div class="row-actions">
+      <button class="btn" id="nsSetBtn">▸ Actualizar</button>
+      <button class="btn ghost" id="nsDelay10Btn">+10 min (retraso)</button>
+      <button class="btn ghost" id="nsDelay30Btn">+30 min</button>
+      <button class="btn danger" id="nsClearBtn">✕ Quitar</button>
+    </div>
+    <div class="status" id="nsStatus"></div>
+    <div class="live-state" id="nsLive" style="margin-top:8px;"></div>
   </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="categories.js"></script>
+<script src="errors.js"></script>
 <script>
 const socket = io();
 const $ = s => document.querySelector(s);
-const defaults = [
-  ['Rojo','J Balvin'], ['Provenza','Karol G'], ['Despecha','Rosalía'], ['Bizarrap Vol. 53','Bizarrap']
-];
-const songsBox = $('#songs');
-defaults.forEach((d, i) => {
-  const g = document.createElement('div');
-  g.className = 'song-grid';
-  g.innerHTML = `<input data-t="${i}" placeholder="Canción ${i+1}" value="${d[0]}">
-                 <input data-a="${i}" placeholder="Artista" value="${d[1]}">`;
-  songsBox.appendChild(g);
+
+let artistsCache = [];
+
+// ---- Acceso por PIN (persistido en esta pestaña) ----
+let adminKey = sessionStorage.getItem('vertigo_admin_pin') || '';
+function key() { return adminKey; }
+
+$('#pinForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = $('#pinInput').value.trim();
+  if (!v) return;
+  tryLogin(v);
 });
 
-function key() { return $('#key').value.trim(); }
-function setStatus(msg, cls='') { const s = $('#status'); s.textContent = msg; s.className = 'status ' + cls; }
-
-function collectSongs() {
-  return defaults.map((_, i) => ({
-    title: songsBox.querySelector(`[data-t="${i}"]`).value.trim() || `Canción ${i+1}`,
-    artist: songsBox.querySelector(`[data-a="${i}"]`).value.trim()
-  }));
+function tryLogin(pin) {
+  socket.emit('admin_listar_artistas', { key: pin }, res => {
+    if (res?.ok) {
+      adminKey = pin;
+      sessionStorage.setItem('vertigo_admin_pin', adminKey);
+      $('#gateMsg').textContent = '';
+      $('#gate').style.display = 'none';
+      $('#panel').style.display = '';
+      artistsCache = res.artists;
+      renderArtistList();
+      renderRoundArtistSelect();
+    } else {
+      $('#gateMsg').textContent = 'PIN incorrecto';
+    }
+  });
 }
 
+$('#logoutLink').addEventListener('click', e => {
+  e.preventDefault();
+  sessionStorage.removeItem('vertigo_admin_pin');
+  location.reload();
+});
+
+if (adminKey) tryLogin(adminKey);
+
+// ---- Selector de categoría ----
+const catSelect = $('#artistCategory');
+window.VERTIGO_CATEGORY_LIST.forEach(c => {
+  const opt = document.createElement('option');
+  opt.value = c.id; opt.textContent = `${c.icon} ${c.label}`;
+  catSelect.appendChild(opt);
+});
+
+function setStatus(el, msg, cls = '') { const s = $(el); s.textContent = msg; s.className = 'status ' + cls; }
+
+// ---- Crear artista ----
+$('#createArtistBtn').onclick = () => {
+  const name = $('#artistName').value.trim();
+  const handle = $('#artistHandle').value.trim();
+  const category = catSelect.value;
+  if (!name) return setStatus('#artistStatus', 'Escribe un nombre', 'err');
+  socket.emit('admin_crear_artista', { key: key(), name, handle, category }, res => {
+    if (res?.ok) {
+      $('#artistName').value = '';
+      $('#artistHandle').value = '';
+      setStatus('#artistStatus', 'Artista creado ✓', 'ok');
+      $('#codeReveal').classList.add('on');
+      $('#codeRevealValue').textContent = res.artist.code;
+      $('#codeRevealName').textContent = `${res.artist.name} · ${window.vertigoCategory(res.artist.category).label}`;
+      loadArtists();
+    } else {
+      setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
+    }
+  });
+};
+
+// ---- Listar artistas ----
+$('#refreshArtistsBtn').onclick = loadArtists;
+function loadArtists() {
+  socket.emit('admin_listar_artistas', { key: key() }, res => {
+    if (!res?.ok) { setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err'); return; }
+    artistsCache = res.artists;
+    renderArtistList();
+    renderRoundArtistSelect();
+  });
+}
+
+function renderArtistList() {
+  const box = $('#artistList');
+  if (!artistsCache.length) { box.innerHTML = '<div class="empty">Todavía no hay artistas creados.</div>'; return; }
+  box.innerHTML = '';
+  artistsCache.forEach(a => {
+    const cat = window.vertigoCategory(a.category);
+    const row = document.createElement('div');
+    row.className = 'artist-row';
+    row.innerHTML = `
+      <div class="info">
+        <div class="aname">${cat.icon} ${esc(a.name)} ${a.handle ? `<span class="ahandle">@${esc(a.handle)}</span>` : ''}</div>
+        <div class="ameta"><span class="pill cat">${cat.label}</span> · ${a.repertoireCount} ${cat.itemLabelPlural.toLowerCase()} · código <span class="acode">${a.code}</span></div>
+      </div>
+      <button class="btn ghost small" data-act="edit">✏️ Editar</button>
+      <button class="btn ghost small" data-act="regen">↺ Código</button>
+      <button class="btn danger small" data-act="del">✕ Borrar</button>
+      <details class="rep-details">
+        <summary>▾ Repertorio (${a.repertoireCount})</summary>
+        <div class="rep-body" data-loaded="0"></div>
+      </details>`;
+    row.querySelector('[data-act="edit"]').onclick = () => editArtistRow(row, a);
+    row.querySelector('[data-act="regen"]').onclick = () => {
+      if (!confirm(`¿Generar un código nuevo para ${a.name}? El código anterior dejará de funcionar.`)) return;
+      socket.emit('admin_regenerar_codigo_artista', { key: key(), artistId: a.id }, res => {
+        if (res?.ok) {
+          $('#codeReveal').classList.add('on');
+          $('#codeRevealValue').textContent = res.artist.code;
+          $('#codeRevealName').textContent = `${res.artist.name} · ${cat.label}`;
+          loadArtists();
+        } else setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
+      });
+    };
+    row.querySelector('[data-act="del"]').onclick = () => {
+      if (!confirm(`¿Eliminar a ${a.name} y su repertorio? Esto no se puede deshacer.`)) return;
+      socket.emit('admin_eliminar_artista', { key: key(), artistId: a.id }, res => {
+        if (res?.ok) loadArtists(); else setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
+      });
+    };
+    row.querySelector('.rep-details').addEventListener('toggle', function () {
+      if (this.open && this.querySelector('.rep-body').dataset.loaded === '0') loadRepertoire(a.id, this.querySelector('.rep-body'), cat);
+    });
+    box.appendChild(row);
+  });
+}
+
+// ---- Editar nombre / usuario de un artista (inline) ----
+function editArtistRow(row, a) {
+  const info = row.querySelector('.info');
+  const original = info.innerHTML;
+  info.innerHTML = `
+    <div class="edit-fields">
+      <input data-f="name" placeholder="Nombre" value="${esc(a.name)}">
+      <input data-f="handle" placeholder="Usuario / Instagram" value="${esc(a.handle || '')}">
+    </div>
+    <div class="row-actions" style="margin-top:8px;">
+      <button class="btn ghost small" data-act="save">💾 Guardar</button>
+      <button class="btn ghost small" data-act="cancel">✕ Cancelar</button>
+    </div>`;
+  info.querySelector('[data-act="save"]').onclick = () => {
+    const name = info.querySelector('[data-f="name"]').value.trim();
+    const handle = info.querySelector('[data-f="handle"]').value.trim();
+    socket.emit('admin_editar_artista', { key: key(), artistId: a.id, name, handle }, res => {
+      if (res?.ok) loadArtists();
+      else setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
+    });
+  };
+  info.querySelector('[data-act="cancel"]').onclick = () => { info.innerHTML = original; };
+}
+
+// ---- Repertorio de cualquier artista, editable desde /admin (back-office) ----
+function loadRepertoire(artistId, box, cat) {
+  box.innerHTML = '<div class="empty">Cargando…</div>';
+  socket.emit('admin_ver_artista', { key: key(), artistId }, res => {
+    if (!res?.ok) { box.innerHTML = `<div class="empty">Error: ${window.vertigoError(res?.error)}</div>`; return; }
+    box.dataset.loaded = '1';
+    renderRepertoireBody(box, res.artist, cat);
+  });
+}
+
+function renderRepertoireBody(box, artist, cat) {
+  const list = document.createElement('div');
+  list.className = 'rep-list';
+  if (!artist.repertoire.length) {
+    list.innerHTML = `<div class="empty">Todavía no tiene ${cat.itemLabelPlural.toLowerCase()}.</div>`;
+  } else {
+    artist.repertoire.forEach(it => {
+      const sub = cat.fields.filter(f => f.key !== 'title').map(f => it[f.key]).filter(Boolean).join(' · ');
+      const item = document.createElement('div');
+      item.className = 'rep-item';
+      item.innerHTML = `
+        <div class="info"><div class="t">${esc(it.title)}</div>${sub ? `<div class="a">${esc(sub)}</div>` : ''}</div>
+        <button class="icon-btn" data-act="edit" title="Editar">✏️</button>
+        <button class="icon-btn" data-act="del" title="Borrar">🗑️</button>`;
+      item.querySelector('[data-act="del"]').onclick = () => {
+        if (!confirm(`¿Borrar "${it.title}" del repertorio de ${artist.name}?`)) return;
+        socket.emit('artista_eliminar_item', { artistId: artist.id, key: key(), itemId: it.id }, res => {
+          if (res?.ok) { renderRepertoireBody(box, res.artist, cat); loadArtists(); }
+          else setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
+        });
+      };
+      item.querySelector('[data-act="edit"]').onclick = () => {
+        item.innerHTML = `
+          <div class="edit-fields">
+            ${cat.fields.map(f => `<input data-f="${f.key}" placeholder="${esc(f.label)}" value="${esc(it[f.key] || '')}">`).join('')}
+          </div>
+          <button class="icon-btn" data-act="save" title="Guardar">💾</button>
+          <button class="icon-btn" data-act="cancel" title="Cancelar">✕</button>`;
+        item.querySelector('[data-act="save"]').onclick = () => {
+          const fields = {};
+          item.querySelectorAll('[data-f]').forEach(i => { fields[i.dataset.f] = i.value.trim(); });
+          socket.emit('artista_editar_item', { artistId: artist.id, key: key(), itemId: it.id, fields }, res => {
+            if (res?.ok) renderRepertoireBody(box, res.artist, cat);
+            else setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
+          });
+        };
+        item.querySelector('[data-act="cancel"]').onclick = () => renderRepertoireBody(box, artist, cat);
+      };
+      list.appendChild(item);
+    });
+  }
+
+  const addBox = document.createElement('div');
+  addBox.className = 'rep-add';
+  addBox.innerHTML = cat.fields.map(f =>
+    `<input data-f="${f.key}" placeholder="${esc(f.label)}${f.required ? '' : ' (opcional)'}">`
+  ).join('') + `<button class="btn ghost small" data-act="add">➕ Agregar</button>`;
+  addBox.querySelector('[data-act="add"]').onclick = () => {
+    const fields = {};
+    addBox.querySelectorAll('[data-f]').forEach(i => { fields[i.dataset.f] = i.value.trim(); });
+    const falta = cat.fields.some(f => f.required && !fields[f.key]);
+    if (falta) return setStatus('#artistStatus', 'Falta completar un campo obligatorio', 'err');
+    socket.emit('artista_agregar_item', { artistId: artist.id, key: key(), fields }, res => {
+      if (res?.ok) { renderRepertoireBody(box, res.artist, cat); loadArtists(); }
+      else setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
+    });
+  };
+
+  box.innerHTML = '';
+  box.appendChild(list);
+  box.appendChild(addBox);
+}
+
+function renderRoundArtistSelect() {
+  const sel = $('#roundArtist');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— Selecciona un artista —</option>';
+  artistsCache.forEach(a => {
+    const cat = window.vertigoCategory(a.category);
+    const opt = document.createElement('option');
+    opt.value = a.id;
+    opt.textContent = `${cat.icon} ${a.name} (${cat.label}) · ${a.repertoireCount} ${cat.itemLabelPlural.toLowerCase()}`;
+    sel.appendChild(opt);
+  });
+  if ([...sel.options].some(o => o.value === current)) sel.value = current;
+}
+
+$('#roundArtist').addEventListener('change', () => {
+  const a = artistsCache.find(x => x.id === $('#roundArtist').value);
+  if (a && !$('#title').value) $('#title').placeholder = window.vertigoCategory(a.category).promptLabel;
+});
+
+// ---- Show ----
 $('#openBtn').onclick = () => {
-  socket.emit('admin_abrir_ronda', {
-    key: key(),
-    config: { title: $('#title').value.trim(), nextShow: $('#nextShow').value.trim(), songs: collectSongs() }
-  }, res => res?.ok ? setStatus('Ronda abierta ✓','ok') : setStatus('Error: ' + (res?.error||'?'),'err'));
+  const artistId = $('#roundArtist').value;
+  if (!artistId) return setStatus('#status', 'Elige un artista primero', 'err');
+  socket.emit('admin_iniciar_ronda_artista', {
+    key: key(), artistId, title: $('#title').value.trim()
+  }, res => res?.ok ? setStatus('#status', 'Show iniciado ✓', 'ok') : setStatus('#status', 'Error: ' + window.vertigoError(res?.error), 'err'));
 };
 $('#closeBtn').onclick = () => {
   socket.emit('admin_cerrar_ronda', { key: key() },
-    res => res?.ok ? setStatus('Ronda cerrada · ganador definido ✓','ok') : setStatus('Error: ' + (res?.error||'?'),'err'));
+    res => res?.ok ? setStatus('#status', 'Votación cerrada ✓', 'ok') : setStatus('#status', 'Error: ' + window.vertigoError(res?.error), 'err'));
 };
 $('#resetBtn').onclick = () => {
   socket.emit('admin_reset', { key: key() },
-    res => res?.ok ? setStatus('Votos reiniciados ✓','ok') : setStatus('Error: ' + (res?.error||'?'),'err'));
+    res => res?.ok ? setStatus('#status', 'Votos reiniciados ✓', 'ok') : setStatus('#status', 'Error: ' + window.vertigoError(res?.error), 'err'));
 };
 
 function renderLive(s) {
-  if (!s) { $('#live').textContent = 'Sin ronda activa'; return; }
+  if (!s) { $('#live').textContent = 'Sin show en vivo'; return; }
+  const cat = window.vertigoCategory(s.category);
   const pill = s.open ? '<span class="pill open">ABIERTA</span>' : '<span class="pill closed">CERRADA</span>';
-  const rows = s.songs.map(x => `${x.rank}. ${x.title} — <b style="color:var(--orange)">${x.votes}</b> (${x.pct}%)`).join('<br>');
-  $('#live').innerHTML = `${pill} &nbsp; total: <b>${s.total}</b><br><br>${rows}`;
+  const rows = s.items.map(x => {
+    const sub = [x.artist, x.genre].filter(Boolean).join(' · ');
+    return `${x.rank}. ${esc(x.title)}${sub ? ' — <i>' + esc(sub) + '</i>' : ''} — <b style="color:var(--orange)">${x.votes}</b> (${x.pct}%)`;
+  }).join('<br>');
+  $('#live').innerHTML = `${pill} <span class="pill cat">${cat.icon} ${s.artistName || '—'}</span> &nbsp; total: <b>${s.total}</b><br><br>${rows || '<span class="empty">Sin ' + cat.itemLabelPlural.toLowerCase() + ' en votación.</span>'}`;
 }
 socket.on('estado_actual', renderLive);
-socket.on('voto_recibido', ({state}) => renderLive(state));
-socket.on('ronda_concluida', ({state}) => renderLive(state));
-socket.on('rebase_ocurrido', ({state}) => renderLive(state));
+socket.on('voto_recibido', ({ state }) => renderLive(state));
+socket.on('ronda_concluida', ({ state }) => renderLive(state));
+socket.on('rebase_ocurrido', ({ state }) => renderLive(state));
+socket.on('ronda_iniciada', renderLive);
+
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+// ---- Próximo show (cuenta regresiva) ----
+let nextShowInfo = null;
+let nsTickInterval = null;
+
+document.querySelectorAll('input[name="nsMode"]').forEach(r => {
+  r.addEventListener('change', () => {
+    const isHora = $('input[name="nsMode"]:checked').value === 'hora';
+    $('#nsHora').style.display = isHora ? '' : 'none';
+    $('#nsMinutos').style.display = isHora ? 'none' : '';
+  });
+});
+
+$('#nsSetBtn').onclick = () => {
+  const label = $('#nsLabel').value.trim();
+  if (!label) return setStatus('#nsStatus', 'Escribe quién/qué sigue', 'err');
+  const mode = $('input[name="nsMode"]:checked').value;
+  const value = mode === 'hora' ? $('#nsHora').value : $('#nsMinutos').value;
+  socket.emit('admin_set_next_show', { key: key(), label, mode, value }, res => {
+    res?.ok ? setStatus('#nsStatus', 'Próximo show actualizado ✓', 'ok') : setStatus('#nsStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
+  });
+};
+$('#nsDelay10Btn').onclick = () => {
+  socket.emit('admin_posponer_next_show', { key: key(), minutes: 10 },
+    res => res?.ok ? setStatus('#nsStatus', '+10 min aplicados ✓', 'ok') : setStatus('#nsStatus', 'Error: ' + window.vertigoError(res?.error), 'err'));
+};
+$('#nsDelay30Btn').onclick = () => {
+  socket.emit('admin_posponer_next_show', { key: key(), minutes: 30 },
+    res => res?.ok ? setStatus('#nsStatus', '+30 min aplicados ✓', 'ok') : setStatus('#nsStatus', 'Error: ' + window.vertigoError(res?.error), 'err'));
+};
+$('#nsClearBtn').onclick = () => {
+  socket.emit('admin_borrar_next_show', { key: key() },
+    res => res?.ok ? setStatus('#nsStatus', 'Próximo show quitado', 'ok') : setStatus('#nsStatus', 'Error: ' + window.vertigoError(res?.error), 'err'));
+};
+
+function renderNsLive() {
+  clearInterval(nsTickInterval);
+  const el = $('#nsLive');
+  if (!nextShowInfo) { el.textContent = 'Sin próximo show definido.'; return; }
+  if (!nextShowInfo.targetAt) { el.textContent = `📣 ${nextShowInfo.label} (sin horario)`; return; }
+  const tick = () => {
+    const remaining = nextShowInfo.targetAt - Date.now();
+    if (remaining <= 0) { el.innerHTML = `📣 ${esc(nextShowInfo.label)} — <b style="color:var(--orange)">¡ya casi!</b>`; return; }
+    const h = Math.floor(remaining / 3600000), m = Math.floor((remaining % 3600000) / 60000), s = Math.floor((remaining % 60000) / 1000);
+    const hh = h > 0 ? h + ':' : '';
+    el.innerHTML = `📣 ${esc(nextShowInfo.label)} — <b style="color:var(--orange)">${hh}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}</b>`;
+  };
+  tick();
+  nsTickInterval = setInterval(tick, 1000);
+}
+socket.on('proximo_show_actualizado', info => { nextShowInfo = info; renderNsLive(); });
+
 </script>
+  {CREDIT}
+  <div class="dev-credit">© 2026 Desarrollado por <b>QUEHAY LABS SAS</b></div>
 </body>
 </html>

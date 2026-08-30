@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>VÉRTIGO BAR — Pantalla</title>
+<title>Vértigo - Gastro & Pub — Pantalla</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css" />
@@ -48,7 +48,7 @@
     <main class="tv-main">
       <header class="tv-head">
         <div class="brand">
-          <span class="b1">VÉRTIGO</span><span class="b2">·BAR</span>
+          <span class="b1">VÉRTIGO</span><span class="b2"> - GASTRO &amp; PUB</span>
         </div>
         <div class="tv-turbo">
           <span class="turbo-label">TURBO OVERDRIVE</span>
@@ -68,7 +68,7 @@
     <aside class="tv-side">
       <div class="side-glow"></div>
       <h2 class="side-h">ESCANEA<br>PARA VOTAR</h2>
-      <p class="side-sub">Elige la siguiente canción</p>
+      <p class="side-sub" id="sideSub">Elige la siguiente canción</p>
       <div class="qr-frame">
         <div id="qr"></div>
         <span class="qr-corner tl"></span><span class="qr-corner tr"></span>
@@ -76,16 +76,20 @@
       </div>
       <div class="side-url" id="voteUrl">—</div>
       <div class="side-show">
+        <span class="show-label">EN VIVO AHORA</span>
+        <span class="show-name" id="liveArtist">—</span>
+      </div>
+      <div class="side-show">
         <span class="show-label">PRÓXIMO SHOW</span>
         <span class="show-name" id="nextShow">—</span>
       </div>
     </aside>
   </div>
 
-  <!-- ====== OVERLAY K.O. / GANADOR ====== -->
+  <!-- ====== OVERLAY DE CELEBRACIÓN (recurrente, 30s, se repite toda la noche) ====== -->
   <div id="ko" class="ko">
     <div class="ko-inner">
-      <div class="ko-kicker">RONDA CONCLUIDA</div>
+      <div class="ko-kicker" id="koKicker">¡YA SE HIZO!</div>
       <div class="ko-word">K.O.</div>
       <div class="ko-card gpu">
         <div class="ko-num">1</div>
@@ -95,7 +99,7 @@
         </div>
         <div class="ko-votes"><b id="koVotes">0</b><span>votos</span></div>
       </div>
-      <div class="ko-sub">GANADOR DE LA NOCHE</div>
+      <div class="ko-sub">LA VOTACIÓN SIGUE · ¿SE REPITE?</div>
     </div>
     <canvas id="confetti" class="confetti"></canvas>
   </div>
@@ -106,6 +110,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
+<script src="categories.js"></script>
 <script src="tv.js"></script>
+  {CREDIT}
+  <div class="dev-credit">© 2026 Desarrollado por <b>QUEHAY LABS SAS</b></div>
 </body>
 </html>

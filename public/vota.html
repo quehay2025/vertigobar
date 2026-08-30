@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#050506" />
+<title>Vértigo - Gastro & Pub — Vota tu canción</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css" />
+<link rel="stylesheet" href="client.css" />
+</head>
+<body class="hud-grid">
+
+<!-- ============ PANTALLA DE BIENVENIDA ============ -->
+<section id="welcome" class="screen active">
+  <div class="w-top">
+    <div class="brand">
+      <span class="b1">VÉRTIGO</span><span class="b2 b2-long"> - GASTRO &amp; PUB</span>
+    </div>
+    <div class="brand-sub">LIVE&nbsp;VOTE</div>
+  </div>
+
+  <div class="w-hero">
+    <div class="w-ring gpu"></div>
+    <h1>¿Cómo te<br><span>llamas?</span></h1>
+    <p class="w-lead">Tu voto mueve la pista. Entra al vértigo.</p>
+  </div>
+
+  <form id="nameForm" class="w-form" autocomplete="off">
+    <input id="nameInput" type="text" maxlength="18" placeholder="Escribe tu nombre" required />
+    <button class="btn" type="submit">ENTRAR&nbsp;▸</button>
+  </form>
+  <p class="w-foot">Vota las veces que quieras · cada 3 minutos</p>
+</section>
+
+<!-- ============ PANEL DE VOTACIÓN (GAMEPAD) ============ -->
+<section id="vote" class="screen">
+  <header class="v-head">
+    <div class="brand small">
+      <span class="b1">VÉRTIGO</span><span class="b2 b2-long"> - GASTRO &amp; PUB</span>
+    </div>
+    <div class="v-user">HOLA · <b id="userName">—</b> <a href="#" id="changeNameLink" class="change-name">cambiar</a></div>
+  </header>
+
+  <div class="v-title">
+    <span id="roundTitle">Elige la siguiente canción</span>
+    <div class="v-live"><i></i> EN VIVO</div>
+  </div>
+
+  <div id="pad" class="pad"><!-- botones inyectados --></div>
+
+  <div id="voteMsg" class="v-msg"></div>
+</section>
+
+<!-- ============ ESTADO POST-VOTO / CIERRE / COOLDOWN ============ -->
+<section id="done" class="screen">
+  <div class="done-box gpu">
+    <div id="doneIcon" class="done-icon">✓</div>
+    <h2 id="doneTitle">¡Voto registrado!</h2>
+    <p id="doneText">Tu voto ya está en la pantalla del bar.</p>
+    <div id="myPick" class="my-pick"></div>
+    <div id="cooldownBox" class="cooldown-box">
+      <div class="cooldown-label">PUEDES VOTAR DE NUEVO EN</div>
+      <div id="cooldownTimer" class="cooldown-timer">05:00</div>
+      <div id="cooldownTip" class="cooldown-tip"></div>
+    </div>
+  </div>
+  <p class="w-foot">Mira la pantalla grande · el vértigo está en marcha</p>
+</section>
+
+<!-- capa de flash para feedback global -->
+<div id="flash" class="flash"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="categories.js"></script>
+<script src="errors.js"></script>
+<script src="client.js"></script>
+  {CREDIT}
+  <div class="dev-credit">© 2026 Desarrollado por <b>QUEHAY LABS SAS</b></div>
+</body>
+</html>

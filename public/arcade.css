@@ -1,0 +1,63 @@
+/* =========================================================================
+   VÉRTIGO - GASTRO & PUB — Página de inicio (landing pública)
+   ========================================================================= */
+.home {
+  position: relative; z-index: 1; max-width: 720px; margin: 0 auto;
+  min-height: 100dvh; padding: 26px 20px calc(40px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column;
+}
+
+.home-top { display: flex; justify-content: center; margin-bottom: 10px; }
+
+/* ---- Hero ---- */
+.home-hero {
+  flex: 0 0 auto; display: flex; flex-direction: column; align-items: center;
+  text-align: center; padding: 48px 0 40px; position: relative;
+}
+.home-ring {
+  position: absolute; top: 10px; width: 220px; height: 220px; border-radius: 50%;
+  border: 2px solid rgba(255,106,0,.35);
+  box-shadow: var(--glow-orange), inset 0 0 40px rgba(255,106,0,.15);
+  animation: ring-pulse 3.2s ease-in-out infinite;
+}
+@keyframes ring-pulse {
+  0%,100% { transform: translate3d(0,0,0) scale(.92); opacity: .5; }
+  50%     { transform: translate3d(0,0,0) scale(1.05); opacity: 1; }
+}
+.home-hero h1 {
+  position: relative; font-family: var(--font-mono); font-size: 2.6rem; line-height: 1.08;
+  letter-spacing: 1px; margin-top: 40px;
+}
+.home-hero h1 span { color: var(--orange); text-shadow: var(--glow-orange); }
+.home-lead {
+  position: relative; margin-top: 16px; color: var(--text-dim); font-size: 1.02rem;
+  max-width: 400px; line-height: 1.5;
+}
+.home-cta {
+  position: relative; margin-top: 26px; font-size: 1.1rem; padding: 16px 34px;
+  text-decoration: none; display: inline-block;
+}
+.home-hint {
+  position: relative; margin-top: 12px; color: var(--text-dim); font-size: .8rem; letter-spacing: .5px;
+}
+
+/* ---- Cómo funciona ---- */
+.home-how { margin-top: 20px; }
+.home-how-title {
+  font-family: var(--font-mono); font-size: .9rem; letter-spacing: 3px; color: var(--orange);
+  text-align: center; margin-bottom: 22px;
+}
+.how-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 560px) { .how-grid { grid-template-columns: 1fr 1fr; } }
+.how-card {
+  background: var(--grad-panel); border: 1.5px solid var(--line); border-radius: var(--radius-lg);
+  padding: 20px; text-align: center;
+}
+.how-ico { font-size: 1.8rem; margin-bottom: 8px; }
+.how-t { font-weight: 700; font-size: 1.05rem; margin-bottom: 6px; }
+.how-d { color: var(--text-dim); font-size: .88rem; line-height: 1.45; }
+
+/* ---- Footer ---- */
+.home-foot { margin-top: 36px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.btn.ghost { background: transparent; border: 1.5px solid var(--line); box-shadow: none; color: var(--text); text-decoration: none; padding: 12px 22px; display: inline-block; }
+.home-copy { color: var(--text-dim); font-size: .75rem; letter-spacing: 1px; }

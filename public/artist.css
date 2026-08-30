@@ -1,5 +1,5 @@
 /* =========================================================================
-   VÉRTIGO BAR — Vista Artista
+   VÉRTIGO - GASTRO & PUB — Vista Artista
    ========================================================================= */
 .gate, .panel { position: relative; z-index: 1; max-width: 620px; margin: 0 auto;
   min-height: 100dvh; padding: 26px 18px calc(26px + env(safe-area-inset-bottom)); }
@@ -19,9 +19,11 @@
 /* ---- Panel ---- */
 .panel { display: none; }
 .panel.on { display: block; }
-.a-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.a-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; }
 .a-total { font-family: var(--font-mono); font-size: .82rem; color: var(--text-dim); }
 .a-total b { color: var(--orange); }
+.a-artist { font-family: var(--font-mono); font-size: .8rem; color: var(--text-dim); background: var(--bg-2);
+  border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; white-space: nowrap; }
 .a-hint { background: var(--bg-2); border: 1px solid var(--line); border-left: 3px solid var(--orange);
   border-radius: 10px; padding: 12px 14px; font-size: .88rem; color: var(--text-dim); line-height: 1.4; margin-bottom: 18px; }
 .a-hint b { color: var(--text); }
@@ -80,3 +82,22 @@
 .a-msg.err { color: #ff5a5a; }
 .a-links { text-align: center; margin-top: 18px; }
 .a-links a { color: var(--text-dim); text-decoration: none; margin: 0 12px; font-size: .82rem; }
+
+/* ---- Repertorio: fila con acciones editar/borrar ---- */
+.rep-row .icon-btn {
+  flex: 0 0 auto; border: 1.5px solid var(--line); background: var(--bg-2); cursor: pointer;
+  border-radius: 10px; width: 38px; height: 38px; font-size: 1rem; color: var(--text);
+  display: flex; align-items: center; justify-content: center; transition: border-color .2s, transform .1s;
+}
+.rep-row .icon-btn:active { transform: scale(.92); }
+.rep-row .del-btn:hover { border-color: #ff5a5a; }
+.rep-row .edit-btn:hover, .rep-row .save-btn:hover { border-color: var(--neon); }
+.edit-fields { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.edit-fields input {
+  flex: 1 1 120px; background: var(--bg-2); border: 1.5px solid var(--line); border-radius: 8px;
+  color: var(--white); padding: 8px 10px; font-family: var(--font); font-size: .88rem; outline: none;
+}
+.edit-fields input:focus { border-color: var(--orange); }
+
+/* ---- Formulario de alta: campos dinámicos según categoría ---- */
+.field-grid { display: flex; flex-direction: column; gap: 10px; }

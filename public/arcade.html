@@ -2,72 +2,66 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#050506" />
-<title>VÉRTIGO BAR — Vota tu canción</title>
+<title>Vértigo - Gastro & Pub — Tú decides qué sigue</title>
+<meta name="description" content="Vota en vivo lo próximo del show en Vértigo - Gastro & Pub: canciones, temas de stand-up o géneros de DJ, según quién esté en el escenario." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css" />
-<link rel="stylesheet" href="client.css" />
+<link rel="stylesheet" href="arcade.css" />
 </head>
 <body class="hud-grid">
 
-<!-- ============ PANTALLA DE BIENVENIDA ============ -->
-<section id="welcome" class="screen active">
-  <div class="w-top">
-    <div class="brand">
-      <span class="b1">VÉRTIGO</span><span class="b2">·BAR</span>
-    </div>
-    <div class="brand-sub">LIVE&nbsp;VOTE</div>
-  </div>
-
-  <div class="w-hero">
-    <div class="w-ring gpu"></div>
-    <h1>¿Cómo te<br><span>llamas?</span></h1>
-    <p class="w-lead">Tu voto mueve la pista. Entra al vértigo.</p>
-  </div>
-
-  <form id="nameForm" class="w-form" autocomplete="off">
-    <input id="nameInput" type="text" maxlength="18" placeholder="Escribe tu nombre" required />
-    <button class="btn" type="submit">ENTRAR&nbsp;▸</button>
-  </form>
-  <p class="w-foot">Un voto por ronda · sin registro</p>
-</section>
-
-<!-- ============ PANEL DE VOTACIÓN (GAMEPAD) ============ -->
-<section id="vote" class="screen">
-  <header class="v-head">
-    <div class="brand small">
-      <span class="b1">VÉRTIGO</span><span class="b2">·BAR</span>
-    </div>
-    <div class="v-user">HOLA · <b id="userName">—</b></div>
+<div class="home">
+  <header class="home-top">
+    <div class="brand"><span class="b1">VÉRTIGO</span><span class="b2"> - GASTRO &amp; PUB</span></div>
   </header>
 
-  <div class="v-title">
-    <span id="roundTitle">Elige la siguiente canción</span>
-    <div class="v-live"><i></i> EN VIVO</div>
-  </div>
+  <section class="home-hero">
+    <div class="home-ring gpu"></div>
+    <h1>Tú decides<br><span>qué sigue.</span></h1>
+    <p class="home-lead">
+      Vota en vivo lo próximo del show — canción, tema o género, según quién esté
+      en el escenario ahora mismo. Desde tu celular, sin registrarte.
+    </p>
+    <a href="/vota" class="btn home-cta">ENTRAR&nbsp;▸</a>
+    <p class="home-hint">O escanea el código QR en tu mesa</p>
+  </section>
 
-  <div id="pad" class="pad"><!-- botones inyectados --></div>
+  <section class="home-how">
+    <h2 class="home-how-title">CÓMO FUNCIONA</h2>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-ico">📱</div>
+        <div class="how-t">Entra</div>
+        <div class="how-d">Escanea el QR de tu mesa o toca "Entrar" aquí arriba. Solo pones tu nombre una vez.</div>
+      </div>
+      <div class="how-card">
+        <div class="how-ico">🗳️</div>
+        <div class="how-t">Vota lo que sigue</div>
+        <div class="how-d">¿Hay un músico? Eliges la canción. ¿Stand-up? Eliges el tema. ¿DJ? Eliges el género.</div>
+      </div>
+      <div class="how-card">
+        <div class="how-ico">📺</div>
+        <div class="how-t">Mira la pantalla</div>
+        <div class="how-d">El ranking se mueve en vivo en la pantalla del bar con cada voto.</div>
+      </div>
+      <div class="how-card">
+        <div class="how-ico">⏱️</div>
+        <div class="how-t">Vuelve a votar</div>
+        <div class="how-d">Puedes votar cada 3 minutos, toda la noche — aprovecha para pedir otra cerveza mientras esperas.</div>
+      </div>
+    </div>
+  </section>
 
-  <div id="voteMsg" class="v-msg"></div>
-</section>
+  <footer class="home-foot">
+    <a href="/vota" class="btn ghost">▸ Ir a votar</a>
+    <p class="home-copy">VÉRTIGO - GASTRO &amp; PUB · Votación en vivo</p>
+  </footer>
+</div>
 
-<!-- ============ ESTADO POST-VOTO / CIERRE ============ -->
-<section id="done" class="screen">
-  <div class="done-box gpu">
-    <div id="doneIcon" class="done-icon">✓</div>
-    <h2 id="doneTitle">¡Voto registrado!</h2>
-    <p id="doneText">Tu voto ya está en la pantalla del bar.</p>
-    <div id="myPick" class="my-pick"></div>
-  </div>
-  <p class="w-foot">Mira la pantalla grande · el vértigo está en marcha</p>
-</section>
-
-<!-- capa de flash para feedback global -->
-<div id="flash" class="flash"></div>
-
-<script src="/socket.io/socket.io.js"></script>
-<script src="client.js"></script>
+  {CREDIT}
+  <div class="dev-credit">© 2026 Desarrollado por <b>QUEHAY LABS SAS</b></div>
 </body>
 </html>
