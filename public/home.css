@@ -221,6 +221,19 @@ body {
   /* En pantallas angostas el crédito se centra bajo el botón */
   .dev-credit { right: auto; left: 0; width: 100%; text-align: center; bottom: 16px; }
 }
+/* Pantallas bajas (celular en horizontal): el cartel llegaba a tocar el botón */
+@media (max-height: 620px) {
+  .stage { gap: 3vh; padding: 11vh 24px 74px; }
+  #logo { width: min(34vw, 280px); }
+  .sign { padding: 10px clamp(18px, 4vw, 36px); }
+  .sign h1 { font-size: clamp(.95rem, 3.2vw, 1.5rem); letter-spacing: .18em; }
+  .sign p { margin-top: 6px; padding-top: 6px; font-size: .52rem; }
+  .sign-rig { transform-origin: 50% -5vh; }
+  .cords { height: 5vh; }
+  .foot { bottom: 26px; }
+  .dev-credit { bottom: 8px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   #bgLocal, #logo { animation: none; }
 }

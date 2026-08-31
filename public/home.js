@@ -16,7 +16,7 @@
   const root   = document.documentElement;
 
   // Foto del local (si falta el archivo, queda el negro de fondo)
-  const LOCAL = 'img/local.png';
+  const LOCAL = 'img/local.jpg';
   const probe = new Image();
   probe.onload = () => { bg.style.backgroundImage = `url("${LOCAL}")`; };
   probe.src = LOCAL;

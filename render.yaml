@@ -1,6 +1,23 @@
-# Despliegue en Render (tier gratis con WebSockets persistentes)
-# 1. Sube este repo a GitHub  2. Render > New > Blueprint > selecciona el repo
+# Despliegue en Render — dos servicios, separados por lo que cada uno necesita.
+#
+#   vertigo-landing : el "Proximamente". Archivos estaticos, sin servidor.
+#                     No se apaga nunca: carga al instante siempre.
+#                     -> dominio raiz  vertigogastropub.com
+#
+#   vertigo-bar     : la votacion en vivo. Necesita Node, WebSockets y Mongo,
+#                     asi que sigue en el plan free y duerme tras 15 min sin
+#                     trafico. Eso solo lo nota quien entra a votar.
+#                     -> subdominio    arcade.vertigogastropub.com
+#
+# Los enlaces y QR viejos que apunten al dominio raiz (/vota, /tv, /admin...)
+# se redirigen al subdominio desde dist/_redirects, que genera el build.
 services:
+  - type: web
+    name: vertigo-landing
+    runtime: static
+    buildCommand: npm run build:landing
+    staticPublishPath: ./dist
+
   - type: web
     name: vertigo-bar
     runtime: node
