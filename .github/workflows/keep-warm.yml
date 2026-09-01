@@ -1,27 +1,70 @@
-# Mantiene despierto el servicio de Render.
+# Mantiene despierto el servicio de Render y avisa si el sitio se cae.
 #
 # El plan free apaga la instancia tras ~15 min sin trafico, y el primer
-# visitante despues de eso ve la pantalla de arranque de Render. Este cron
-# la visita cada 10 minutos para que eso no ocurra nunca.
+# visitante despues de eso ve la pantalla de arranque de Render.
 #
-# Golpea /api/health, que solo responde un JSON: es la ruta mas barata,
-# no toca Mongo ni abre WebSockets.
+# Corre cada 5 min, no cada 10, a proposito: el cron de GitHub se retrasa
+# en horas pico, y con 5 min de margen el sitio aguanta un retraso de casi
+# 10 min sin llegar a dormirse.
 name: keep-warm
 
 on:
   schedule:
-    - cron: '*/10 * * * *'   # cada 10 minutos
-  workflow_dispatch:          # y a mano desde la pestaña Actions
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]        # tras cada deploy, despierta ya
+
+# Si una corrida se retrasa y se solapa con la siguiente, que no se apilen.
+concurrency:
+  group: keep-warm
+  cancel-in-progress: false
 
 jobs:
   ping:
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     steps:
       - name: Despertar vertigogastropub.com
         run: |
-          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 90 \
-                 https://vertigogastropub.com/api/health)
-          echo "respuesta: $code"
-          # Un 5xx puntual de Render no debe marcar el workflow en rojo:
-          # lo que importa es que la peticion llego y desperto la instancia.
-          [ -n "$code" ]
+          URL=https://vertigogastropub.com/api/health
+          # Un arranque en frio de Render puede tardar ~60 s: reintentamos
+          # con paciencia antes de dar el sitio por caido.
+          for intento in 1 2 3; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 120 "$URL" || echo 000)
+            echo "intento $intento -> $code"
+            if [ "$code" = "200" ]; then
+              echo "sitio despierto"
+              exit 0
+            fi
+            [ $intento -lt 3 ] && sleep 20
+          done
+          echo "::error::El sitio no respondio 200 tras 3 intentos (ultimo: $code)"
+          exit 1
+
+  # GitHub apaga los crons tras 60 dias sin actividad en el repo, y las
+  # corridas del propio workflow no cuentan como actividad. Un commit
+  # semanal si cuenta, y evita que el keep-warm muera solo.
+  keep-cron-alive:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Latir una vez por semana
+        run: |
+          marca=.github/last-heartbeat
+          hoy=$(date -u +%Y-%m-%d)
+          semana=$(date -u +%G-W%V)
+          # Solo escribe si cambio la semana ISO: 52 commits al año, no mas.
+          if [ -f "$marca" ] && grep -q "$semana" "$marca"; then
+            echo "ya hubo latido esta semana ($semana)"
+            exit 0
+          fi
+          printf '%s %s\n' "$semana" "$hoy" > "$marca"
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add "$marca"
+          git commit -m "chore: latido semanal para que GitHub no apague el cron"
+          git push
