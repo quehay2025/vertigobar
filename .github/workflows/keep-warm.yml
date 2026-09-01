@@ -1,0 +1,27 @@
+# Mantiene despierto el servicio de Render.
+#
+# El plan free apaga la instancia tras ~15 min sin trafico, y el primer
+# visitante despues de eso ve la pantalla de arranque de Render. Este cron
+# la visita cada 10 minutos para que eso no ocurra nunca.
+#
+# Golpea /api/health, que solo responde un JSON: es la ruta mas barata,
+# no toca Mongo ni abre WebSockets.
+name: keep-warm
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # cada 10 minutos
+  workflow_dispatch:          # y a mano desde la pestaña Actions
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Despertar vertigogastropub.com
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 90 \
+                 https://vertigogastropub.com/api/health)
+          echo "respuesta: $code"
+          # Un 5xx puntual de Render no debe marcar el workflow en rojo:
+          # lo que importa es que la peticion llego y desperto la instancia.
+          [ -n "$code" ]
