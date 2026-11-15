@@ -1,5 +1,5 @@
 /* =========================================================================
-   Landing VÉRTIGO — viento sobre el telón y balanceo del cartel.
+   Landing TRIBU — viento sobre el telón y balanceo del cartel.
 
    No hay bucle: no es un clip que empieza y termina. El estado del telón
    sale de un muelle amortiguado empujado por viento continuo, así que

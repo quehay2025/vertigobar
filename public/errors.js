@@ -1,10 +1,10 @@
 /* =========================================================================
-   VÉRTIGO - GASTRO & PUB — Mensajes de error (browser)
+   TRIBU GASTRO PUB — Mensajes de error (browser)
    Traduce los códigos que devuelve el servidor (server.js, artists.js) a
    texto claro para el usuario. Si agregas un código nuevo en el servidor,
    agrégalo también aquí.
    ========================================================================= */
-window.VERTIGO_ERRORS = {
+window.TRIBU_ERRORS = {
   no_autorizado: 'Clave o código incorrecto.',
   sin_ronda: 'No hay ningún show en vivo en este momento.',
   item_invalido: 'Esa opción ya no está disponible. Actualiza la página.',
@@ -21,6 +21,6 @@ window.VERTIGO_ERRORS = {
   sin_horario: 'Todavía no has definido una hora para el próximo show.'
 };
 
-window.vertigoError = function (code) {
-  return window.VERTIGO_ERRORS[code] || 'Ocurrió un error inesperado. Intenta de nuevo.';
+window.tribuError = function (code) {
+  return window.TRIBU_ERRORS[code] || 'Ocurrió un error inesperado. Intenta de nuevo.';
 };

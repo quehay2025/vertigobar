@@ -1,4 +1,4 @@
-# 🔥 Vértigo - Gastro & Pub — Votación en vivo por artista y categoría
+# 🔥 Tribu Gastro Pub — Votación en vivo por artista y categoría
 
 Sistema de votación en vivo con estética **arcade / HUD de Esports**. Cada artista tiene un
 **perfil persistente** (con su propio repertorio) y el operador elige quién está en vivo esta
@@ -93,7 +93,7 @@ npm start          # http://localhost:3000
 - Inicio (público): <http://localhost:3000/>
 - Cliente / votación: <http://localhost:3000/vota>
 - TV: <http://localhost:3000/tv>
-- Admin: <http://localhost:3000/admin> (clave por defecto `vertigo-admin`)
+- Admin: <http://localhost:3000/admin> (clave por defecto `tribu-admin`)
 - Artista: <http://localhost:3000/artista> (con el código que le des desde `/admin`)
 
 Copia `.env.example` a `.env` para configurar `ADMIN_KEY` y `MONGODB_URI`.
@@ -134,11 +134,11 @@ Alternativas equivalentes: Railway, Fly.io, o cualquier VPS con `node server.js`
 2. Crea usuario, permite acceso desde `0.0.0.0/0`.
 3. Copia la cadena de conexión en `MONGODB_URI`.
 
-### Dominio propio (vertigogastropub.com)
+### Dominio propio (tribugastropub.com)
 1. Despliega primero en Render (o el host que uses) y confirma que funciona en la URL temporal
    que te da (`*.onrender.com`).
-2. En el dashboard del servicio → **Settings → Custom Domain** → agrega `vertigogastropub.com`
-   (y `www.vertigogastropub.com` si lo usas).
+2. En el dashboard del servicio → **Settings → Custom Domain** → agrega `tribugastropub.com`
+   (y `www.tribugastropub.com` si lo usas).
 3. Render te da un registro CNAME (o A/ALIAS para el dominio raíz) — cópialo en el panel DNS de
    donde compraste el dominio.
 4. Espera la propagación DNS (minutos a horas) y Render emite el certificado HTTPS automáticamente.

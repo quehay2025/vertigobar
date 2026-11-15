@@ -22,7 +22,7 @@ const ASSETS = [
 
 // A dónde se manda a quien llegue con un enlace o QR viejo del dominio raíz.
 // Se sobreescribe con ARCADE_ORIGIN si algún día cambia el subdominio.
-const ARCADE = process.env.ARCADE_ORIGIN || 'https://arcade.vertigogastropub.com';
+const ARCADE = process.env.ARCADE_ORIGIN || 'https://arcade.tribugastropub.com';
 
 const REDIRECTS = ['vota', 'votar', 'arcade', 'tv', 'admin', 'artist', 'artista']
   .map(r => `/${r}    ${ARCADE}/${r}    302`)

@@ -25,9 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Despertar vertigogastropub.com
+      - name: Despertar arcade.tribugastropub.com
         run: |
-          URL=https://vertigogastropub.com/api/health
+          URL=https://arcade.tribugastropub.com/api/health
           # Un arranque en frio de Render puede tardar ~60 s: reintentamos
           # con paciencia antes de dar el sitio por caido.
           for intento in 1 2 3; do

@@ -1,10 +1,10 @@
 /* =========================================================================
-   VÉRTIGO - GASTRO & PUB — Categorías de artista (browser)
+   TRIBU GASTRO PUB — Categorías de artista (browser)
    IMPORTANTE: copia sincronizada a mano con categories.js (raíz, servidor).
    Se carga como <script> plano (no módulo) para que lo usen admin/artist/
    client/tv sin build step.
    ========================================================================= */
-window.VERTIGO_CATEGORIES = {
+window.TRIBU_CATEGORIES = {
   musico: {
     label: 'Música / Banda',
     icon: '🎵',
@@ -69,8 +69,8 @@ window.VERTIGO_CATEGORIES = {
   }
 };
 
-window.VERTIGO_CATEGORY_LIST = Object.entries(window.VERTIGO_CATEGORIES).map(([id, c]) => ({ id, ...c }));
+window.TRIBU_CATEGORY_LIST = Object.entries(window.TRIBU_CATEGORIES).map(([id, c]) => ({ id, ...c }));
 
-window.vertigoCategory = function (cat) {
-  return window.VERTIGO_CATEGORIES[cat] || window.VERTIGO_CATEGORIES.otro;
+window.tribuCategory = function (cat) {
+  return window.TRIBU_CATEGORIES[cat] || window.TRIBU_CATEGORIES.otro;
 };

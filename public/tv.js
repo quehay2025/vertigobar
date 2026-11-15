@@ -1,5 +1,5 @@
 /* =========================================================================
-   VÉRTIGO - GASTRO & PUB — Pantalla del Bar (TV)
+   TRIBU GASTRO PUB — Pantalla del Bar (TV)
    Orquesta: voto_recibido (shockwave), rebase_ocurrido (turbo drift),
              empate_detectado (duelo), tema_cumplido (celebración de 30s,
              se repite toda la noche — no hay "un solo ganador")
@@ -15,7 +15,7 @@
   let rowById = new Map();     // itemId -> elemento .bar-row
   let orderIds = [];           // orden actual de ids (de arriba a abajo)
 
-  const catCfg = () => window.vertigoCategory(state ? state.category : 'otro');
+  const catCfg = () => window.tribuCategory(state ? state.category : 'otro');
   function itemSub(it) {
     const c = catCfg();
     return c.subtitleField ? (it[c.subtitleField] || '') : (it.genre || it.artist || '');
@@ -321,7 +321,7 @@
 
   socket.on('empate_detectado', ({ state: s }) => {
     state = s; updateStats();
-    ticker('⚔️ <b>¡EMPATE!</b> Duelo en el vértigo');
+    ticker('⚔️ <b>¡EMPATE!</b> Duelo en la tribu');
   });
 
   // Se detiene la votación por ahora (ej. fin de la noche, cambio de artista).

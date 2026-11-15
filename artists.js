@@ -1,5 +1,5 @@
 // =============================================================================
-//  VÉRTIGO - GASTRO & PUB — Store de artistas (perfiles + repertorio persistente)
+//  TRIBU GASTRO PUB — Store de artistas (perfiles + repertorio persistente)
 //  Mismo patrón que el estado de `round` en server.js: fuente de verdad en
 //  memoria para tiempo real, con persistencia opcional a Mongo si hay URI.
 // =============================================================================

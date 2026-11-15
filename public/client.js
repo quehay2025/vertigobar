@@ -1,5 +1,5 @@
 /* =========================================================================
-   VÉRTIGO - GASTRO & PUB — Cliente (mobile)
+   TRIBU GASTRO PUB — Cliente (mobile)
    Modelo de voto: cada dispositivo puede votar una vez cada 3 minutos
    (VOTE_COOLDOWN_MS en el servidor), sin importar de qué tema/ciclo se trate.
    El nombre y el cooldown viven en LocalStorage para sobrevivir recargas.
@@ -23,32 +23,32 @@
     '🍺 Aprovecha para pedir otra cerveza — cuando vuelvas, tu voto te estará esperando.',
     '🎉 Estira las piernas y saluda a alguien nuevo. Ya casi puedes votar de nuevo.',
     '🍻 Buen momento para recargar tu cerveza. Vuelve en un ratito.',
-    '🔥 El vértigo sigue en marcha en la pantalla grande. Disfruta y ya vuelves a votar.',
+    '🔥 La tribu sigue en marcha en la pantalla grande. Disfruta y ya vuelves a votar.',
     '📱 Escanea el código QR de tu mesa y haz tu pedido 😉'
   ];
 
   // ---- Identidad + estado persistido en LocalStorage ----
-  let clientId = localStorage.getItem('vertigo_cid');
-  let userName = localStorage.getItem('vertigo_name') || '';
-  let retryAt = Number(localStorage.getItem('vertigo_retry_at') || 0);
+  let clientId = localStorage.getItem('tribu_cid');
+  let userName = localStorage.getItem('tribu_name') || '';
+  let retryAt = Number(localStorage.getItem('tribu_retry_at') || 0);
   let lastVote = null;
-  try { lastVote = JSON.parse(localStorage.getItem('vertigo_last_vote') || 'null'); } catch { lastVote = null; }
+  try { lastVote = JSON.parse(localStorage.getItem('tribu_last_vote') || 'null'); } catch { lastVote = null; }
   let cooldownTip = null;
   let cooldownInterval = null;
 
   const isLocked = () => retryAt > Date.now();
 
   let state = null;
-  const catCfg = () => window.vertigoCategory(state ? state.category : 'otro');
+  const catCfg = () => window.tribuCategory(state ? state.category : 'otro');
 
   // ---- Registro con el servidor (fuente de verdad del cooldown) ----
   function registrar() {
     socket.emit('registrar_cliente', clientId, res => {
       clientId = res.clientId;
-      localStorage.setItem('vertigo_cid', clientId);
+      localStorage.setItem('tribu_cid', clientId);
       retryAt = res.retryAt || 0;
-      if (retryAt) localStorage.setItem('vertigo_retry_at', String(retryAt));
-      else localStorage.removeItem('vertigo_retry_at');
+      if (retryAt) localStorage.setItem('tribu_retry_at', String(retryAt));
+      else localStorage.removeItem('tribu_retry_at');
       if (userName) enterMain();
     });
   }
@@ -62,14 +62,14 @@
     const v = $('#nameInput').value.trim();
     if (!v) return;
     userName = v;
-    localStorage.setItem('vertigo_name', userName);
+    localStorage.setItem('tribu_name', userName);
     enterMain();
   });
 
   $('#changeNameLink').addEventListener('click', e => {
     e.preventDefault();
     userName = '';
-    localStorage.removeItem('vertigo_name');
+    localStorage.removeItem('tribu_name');
     $('#nameInput').value = '';
     show('welcome');
   });
@@ -168,25 +168,25 @@
 
       if (res && res.ok) {
         retryAt = res.retryAt;
-        localStorage.setItem('vertigo_retry_at', String(retryAt));
+        localStorage.setItem('tribu_retry_at', String(retryAt));
         const it = (state.items || []).find(i => i.id === itemId);
         lastVote = it ? {
           id: it.id, title: it.title,
           sub: catCfg().subtitleField ? (it[catCfg().subtitleField] || '') : (it.genre || it.artist || ''),
           icon: catCfg().icon
         } : null;
-        localStorage.setItem('vertigo_last_vote', JSON.stringify(lastVote));
+        localStorage.setItem('tribu_last_vote', JSON.stringify(lastVote));
         cooldownTip = null;
         msg.textContent = '✓ Voto registrado';
         if (navigator.vibrate) navigator.vibrate([20, 40, 30]);
         setTimeout(() => goVoted({ freshVote: true }), 350);
       } else if (res?.error === 'en_espera' && res.retryAt) {
         retryAt = res.retryAt;
-        localStorage.setItem('vertigo_retry_at', String(retryAt));
+        localStorage.setItem('tribu_retry_at', String(retryAt));
         goVoted({ freshVote: false });
       } else {
         msg.classList.add('err');
-        msg.textContent = window.vertigoError(res?.error);
+        msg.textContent = window.tribuError(res?.error);
       }
     });
   }
@@ -259,7 +259,7 @@
     if (remaining <= 0) {
       stopCooldownTicker();
       retryAt = 0;
-      localStorage.removeItem('vertigo_retry_at');
+      localStorage.removeItem('tribu_retry_at');
       $('#cooldownBox').style.display = 'none';
       onCooldownEnd();
       return;

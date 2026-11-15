@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
-const ADMIN_KEY = process.env.ADMIN_KEY || 'vertigo-admin';
+const ADMIN_KEY = process.env.ADMIN_KEY || 'tribu-admin';
 
 // Cada dispositivo (clientId) puede votar una vez por ventana de tiempo,
 // sin importar de qué ítem/ciclo/ronda se trate (mantiene a la gente
@@ -446,7 +446,7 @@ async function boot() {
   }
 
   server.listen(PORT, () => {
-    console.log(`\n  VERTIGO - GASTRO & PUB  ->  http://localhost:${PORT}`);
+    console.log(`\n  TRIBU GASTRO PUB  ->  http://localhost:${PORT}`);
     console.log(`  Inicio  : http://localhost:${PORT}/`);
     console.log(`  Cliente : http://localhost:${PORT}/vota`);
     console.log(`  TV      : http://localhost:${PORT}/tv`);

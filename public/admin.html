@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Vértigo - Gastro & Pub — Control</title>
+<title>Tribu Gastro Pub — Control</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css" />
 <style>
@@ -87,7 +87,7 @@
 
 <!-- Acceso -->
 <section id="gate" class="gate-adm">
-  <h1><span class="b1">VÉRTIGO</span><span class="b2">·CONTROL</span></h1>
+  <h1><span class="b1">TRIBU</span><span class="b2">·CONTROL</span></h1>
   <p class="gate-lead">Acceso restringido — ingresa el PIN</p>
   <form id="pinForm" class="gate-form" autocomplete="off">
     <input id="pinInput" type="password" inputmode="numeric" maxlength="8" placeholder="PIN de 8 dígitos" />
@@ -97,7 +97,7 @@
 </section>
 
 <div class="adm" id="panel" style="display:none;">
-  <h1><span class="b1">VÉRTIGO</span><span class="b2">·CONTROL</span></h1>
+  <h1><span class="b1">TRIBU</span><span class="b2">·CONTROL</span></h1>
   <div class="sub">Panel de operador · artistas y votación</div>
   <div class="links">
     <a href="/vota" target="_blank">▸ Vista cliente</a>
@@ -113,9 +113,9 @@
   <div class="card">
     <h2>ARTISTAS</h2>
     <label>Nombre</label>
-    <input id="artistName" placeholder="Ej: Los Vértigos" />
+    <input id="artistName" placeholder="Ej: Los Tribales" />
     <label>Usuario / Instagram (opcional)</label>
-    <input id="artistHandle" placeholder="@losvertigos" />
+    <input id="artistHandle" placeholder="@lostribales" />
     <label>Categoría</label>
     <select id="artistCategory"></select>
     <div class="row-actions">
@@ -180,7 +180,7 @@ const $ = s => document.querySelector(s);
 let artistsCache = [];
 
 // ---- Acceso por PIN (persistido en esta pestaña) ----
-let adminKey = sessionStorage.getItem('vertigo_admin_pin') || '';
+let adminKey = sessionStorage.getItem('tribu_admin_pin') || '';
 function key() { return adminKey; }
 
 $('#pinForm').addEventListener('submit', e => {
@@ -194,7 +194,7 @@ function tryLogin(pin) {
   socket.emit('admin_listar_artistas', { key: pin }, res => {
     if (res?.ok) {
       adminKey = pin;
-      sessionStorage.setItem('vertigo_admin_pin', adminKey);
+      sessionStorage.setItem('tribu_admin_pin', adminKey);
       $('#gateMsg').textContent = '';
       $('#gate').style.display = 'none';
       $('#panel').style.display = '';
@@ -209,7 +209,7 @@ function tryLogin(pin) {
 
 $('#logoutLink').addEventListener('click', e => {
   e.preventDefault();
-  sessionStorage.removeItem('vertigo_admin_pin');
+  sessionStorage.removeItem('tribu_admin_pin');
   location.reload();
 });
 
@@ -217,7 +217,7 @@ if (adminKey) tryLogin(adminKey);
 
 // ---- Selector de categoría ----
 const catSelect = $('#artistCategory');
-window.VERTIGO_CATEGORY_LIST.forEach(c => {
+window.TRIBU_CATEGORY_LIST.forEach(c => {
   const opt = document.createElement('option');
   opt.value = c.id; opt.textContent = `${c.icon} ${c.label}`;
   catSelect.appendChild(opt);
@@ -238,10 +238,10 @@ $('#createArtistBtn').onclick = () => {
       setStatus('#artistStatus', 'Artista creado ✓', 'ok');
       $('#codeReveal').classList.add('on');
       $('#codeRevealValue').textContent = res.artist.code;
-      $('#codeRevealName').textContent = `${res.artist.name} · ${window.vertigoCategory(res.artist.category).label}`;
+      $('#codeRevealName').textContent = `${res.artist.name} · ${window.tribuCategory(res.artist.category).label}`;
       loadArtists();
     } else {
-      setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
+      setStatus('#artistStatus', 'Error: ' + window.tribuError(res?.error), 'err');
     }
   });
 };
@@ -250,7 +250,7 @@ $('#createArtistBtn').onclick = () => {
 $('#refreshArtistsBtn').onclick = loadArtists;
 function loadArtists() {
   socket.emit('admin_listar_artistas', { key: key() }, res => {
-    if (!res?.ok) { setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err'); return; }
+    if (!res?.ok) { setStatus('#artistStatus', 'Error: ' + window.tribuError(res?.error), 'err'); return; }
     artistsCache = res.artists;
     renderArtistList();
     renderRoundArtistSelect();
@@ -262,7 +262,7 @@ function renderArtistList() {
   if (!artistsCache.length) { box.innerHTML = '<div class="empty">Todavía no hay artistas creados.</div>'; return; }
   box.innerHTML = '';
   artistsCache.forEach(a => {
-    const cat = window.vertigoCategory(a.category);
+    const cat = window.tribuCategory(a.category);
     const row = document.createElement('div');
     row.className = 'artist-row';
     row.innerHTML = `
@@ -286,13 +286,13 @@ function renderArtistList() {
           $('#codeRevealValue').textContent = res.artist.code;
           $('#codeRevealName').textContent = `${res.artist.name} · ${cat.label}`;
           loadArtists();
-        } else setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
+        } else setStatus('#artistStatus', 'Error: ' + window.tribuError(res?.error), 'err');
       });
     };
     row.querySelector('[data-act="del"]').onclick = () => {
       if (!confirm(`¿Eliminar a ${a.name} y su repertorio? Esto no se puede deshacer.`)) return;
       socket.emit('admin_eliminar_artista', { key: key(), artistId: a.id }, res => {
-        if (res?.ok) loadArtists(); else setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
+        if (res?.ok) loadArtists(); else setStatus('#artistStatus', 'Error: ' + window.tribuError(res?.error), 'err');
       });
     };
     row.querySelector('.rep-details').addEventListener('toggle', function () {
@@ -320,7 +320,7 @@ function editArtistRow(row, a) {
     const handle = info.querySelector('[data-f="handle"]').value.trim();
     socket.emit('admin_editar_artista', { key: key(), artistId: a.id, name, handle }, res => {
       if (res?.ok) loadArtists();
-      else setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
+      else setStatus('#artistStatus', 'Error: ' + window.tribuError(res?.error), 'err');
     });
   };
   info.querySelector('[data-act="cancel"]').onclick = () => { info.innerHTML = original; };
@@ -330,7 +330,7 @@ function editArtistRow(row, a) {
 function loadRepertoire(artistId, box, cat) {
   box.innerHTML = '<div class="empty">Cargando…</div>';
   socket.emit('admin_ver_artista', { key: key(), artistId }, res => {
-    if (!res?.ok) { box.innerHTML = `<div class="empty">Error: ${window.vertigoError(res?.error)}</div>`; return; }
+    if (!res?.ok) { box.innerHTML = `<div class="empty">Error: ${window.tribuError(res?.error)}</div>`; return; }
     box.dataset.loaded = '1';
     renderRepertoireBody(box, res.artist, cat);
   });
@@ -354,7 +354,7 @@ function renderRepertoireBody(box, artist, cat) {
         if (!confirm(`¿Borrar "${it.title}" del repertorio de ${artist.name}?`)) return;
         socket.emit('artista_eliminar_item', { artistId: artist.id, key: key(), itemId: it.id }, res => {
           if (res?.ok) { renderRepertoireBody(box, res.artist, cat); loadArtists(); }
-          else setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
+          else setStatus('#artistStatus', 'Error: ' + window.tribuError(res?.error), 'err');
         });
       };
       item.querySelector('[data-act="edit"]').onclick = () => {
@@ -369,7 +369,7 @@ function renderRepertoireBody(box, artist, cat) {
           item.querySelectorAll('[data-f]').forEach(i => { fields[i.dataset.f] = i.value.trim(); });
           socket.emit('artista_editar_item', { artistId: artist.id, key: key(), itemId: it.id, fields }, res => {
             if (res?.ok) renderRepertoireBody(box, res.artist, cat);
-            else setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
+            else setStatus('#artistStatus', 'Error: ' + window.tribuError(res?.error), 'err');
           });
         };
         item.querySelector('[data-act="cancel"]').onclick = () => renderRepertoireBody(box, artist, cat);
@@ -390,7 +390,7 @@ function renderRepertoireBody(box, artist, cat) {
     if (falta) return setStatus('#artistStatus', 'Falta completar un campo obligatorio', 'err');
     socket.emit('artista_agregar_item', { artistId: artist.id, key: key(), fields }, res => {
       if (res?.ok) { renderRepertoireBody(box, res.artist, cat); loadArtists(); }
-      else setStatus('#artistStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
+      else setStatus('#artistStatus', 'Error: ' + window.tribuError(res?.error), 'err');
     });
   };
 
@@ -404,7 +404,7 @@ function renderRoundArtistSelect() {
   const current = sel.value;
   sel.innerHTML = '<option value="">— Selecciona un artista —</option>';
   artistsCache.forEach(a => {
-    const cat = window.vertigoCategory(a.category);
+    const cat = window.tribuCategory(a.category);
     const opt = document.createElement('option');
     opt.value = a.id;
     opt.textContent = `${cat.icon} ${a.name} (${cat.label}) · ${a.repertoireCount} ${cat.itemLabelPlural.toLowerCase()}`;
@@ -415,7 +415,7 @@ function renderRoundArtistSelect() {
 
 $('#roundArtist').addEventListener('change', () => {
   const a = artistsCache.find(x => x.id === $('#roundArtist').value);
-  if (a && !$('#title').value) $('#title').placeholder = window.vertigoCategory(a.category).promptLabel;
+  if (a && !$('#title').value) $('#title').placeholder = window.tribuCategory(a.category).promptLabel;
 });
 
 // ---- Show ----
@@ -424,20 +424,20 @@ $('#openBtn').onclick = () => {
   if (!artistId) return setStatus('#status', 'Elige un artista primero', 'err');
   socket.emit('admin_iniciar_ronda_artista', {
     key: key(), artistId, title: $('#title').value.trim()
-  }, res => res?.ok ? setStatus('#status', 'Show iniciado ✓', 'ok') : setStatus('#status', 'Error: ' + window.vertigoError(res?.error), 'err'));
+  }, res => res?.ok ? setStatus('#status', 'Show iniciado ✓', 'ok') : setStatus('#status', 'Error: ' + window.tribuError(res?.error), 'err'));
 };
 $('#closeBtn').onclick = () => {
   socket.emit('admin_cerrar_ronda', { key: key() },
-    res => res?.ok ? setStatus('#status', 'Votación cerrada ✓', 'ok') : setStatus('#status', 'Error: ' + window.vertigoError(res?.error), 'err'));
+    res => res?.ok ? setStatus('#status', 'Votación cerrada ✓', 'ok') : setStatus('#status', 'Error: ' + window.tribuError(res?.error), 'err'));
 };
 $('#resetBtn').onclick = () => {
   socket.emit('admin_reset', { key: key() },
-    res => res?.ok ? setStatus('#status', 'Votos reiniciados ✓', 'ok') : setStatus('#status', 'Error: ' + window.vertigoError(res?.error), 'err'));
+    res => res?.ok ? setStatus('#status', 'Votos reiniciados ✓', 'ok') : setStatus('#status', 'Error: ' + window.tribuError(res?.error), 'err'));
 };
 
 function renderLive(s) {
   if (!s) { $('#live').textContent = 'Sin show en vivo'; return; }
-  const cat = window.vertigoCategory(s.category);
+  const cat = window.tribuCategory(s.category);
   const pill = s.open ? '<span class="pill open">ABIERTA</span>' : '<span class="pill closed">CERRADA</span>';
   const rows = s.items.map(x => {
     const sub = [x.artist, x.genre].filter(Boolean).join(' · ');
@@ -471,20 +471,20 @@ $('#nsSetBtn').onclick = () => {
   const mode = $('input[name="nsMode"]:checked').value;
   const value = mode === 'hora' ? $('#nsHora').value : $('#nsMinutos').value;
   socket.emit('admin_set_next_show', { key: key(), label, mode, value }, res => {
-    res?.ok ? setStatus('#nsStatus', 'Próximo show actualizado ✓', 'ok') : setStatus('#nsStatus', 'Error: ' + window.vertigoError(res?.error), 'err');
+    res?.ok ? setStatus('#nsStatus', 'Próximo show actualizado ✓', 'ok') : setStatus('#nsStatus', 'Error: ' + window.tribuError(res?.error), 'err');
   });
 };
 $('#nsDelay10Btn').onclick = () => {
   socket.emit('admin_posponer_next_show', { key: key(), minutes: 10 },
-    res => res?.ok ? setStatus('#nsStatus', '+10 min aplicados ✓', 'ok') : setStatus('#nsStatus', 'Error: ' + window.vertigoError(res?.error), 'err'));
+    res => res?.ok ? setStatus('#nsStatus', '+10 min aplicados ✓', 'ok') : setStatus('#nsStatus', 'Error: ' + window.tribuError(res?.error), 'err'));
 };
 $('#nsDelay30Btn').onclick = () => {
   socket.emit('admin_posponer_next_show', { key: key(), minutes: 30 },
-    res => res?.ok ? setStatus('#nsStatus', '+30 min aplicados ✓', 'ok') : setStatus('#nsStatus', 'Error: ' + window.vertigoError(res?.error), 'err'));
+    res => res?.ok ? setStatus('#nsStatus', '+30 min aplicados ✓', 'ok') : setStatus('#nsStatus', 'Error: ' + window.tribuError(res?.error), 'err'));
 };
 $('#nsClearBtn').onclick = () => {
   socket.emit('admin_borrar_next_show', { key: key() },
-    res => res?.ok ? setStatus('#nsStatus', 'Próximo show quitado', 'ok') : setStatus('#nsStatus', 'Error: ' + window.vertigoError(res?.error), 'err'));
+    res => res?.ok ? setStatus('#nsStatus', 'Próximo show quitado', 'ok') : setStatus('#nsStatus', 'Error: ' + window.tribuError(res?.error), 'err'));
 };
 
 function renderNsLive() {

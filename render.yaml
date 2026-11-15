@@ -1,25 +1,25 @@
 # Despliegue en Render — dos servicios, separados por lo que cada uno necesita.
 #
-#   vertigo-landing : el "Proximamente". Archivos estaticos, sin servidor.
+#   tribu-landing : el "Proximamente". Archivos estaticos, sin servidor.
 #                     No se apaga nunca: carga al instante siempre.
-#                     -> dominio raiz  vertigogastropub.com
+#                     -> dominio raiz  tribugastropub.com
 #
-#   vertigo-bar     : la votacion en vivo. Necesita Node, WebSockets y Mongo,
+#   tribu-bar     : la votacion en vivo. Necesita Node, WebSockets y Mongo,
 #                     asi que sigue en el plan free y duerme tras 15 min sin
 #                     trafico. Eso solo lo nota quien entra a votar.
-#                     -> subdominio    arcade.vertigogastropub.com
+#                     -> subdominio    arcade.tribugastropub.com
 #
 # Los enlaces y QR viejos que apunten al dominio raiz (/vota, /tv, /admin...)
 # se redirigen al subdominio desde dist/_redirects, que genera el build.
 services:
   - type: web
-    name: vertigo-landing
+    name: tribu-landing
     runtime: static
     buildCommand: npm run build:landing
     staticPublishPath: ./dist
 
   - type: web
-    name: vertigo-bar
+    name: tribu-bar
     runtime: node
     plan: free
     buildCommand: npm install

@@ -1,15 +1,15 @@
 /* =========================================================================
-   VÉRTIGO - GASTRO & PUB — Panel del Artista (código personal + repertorio persistente)
+   TRIBU GASTRO PUB — Panel del Artista (código personal + repertorio persistente)
    ========================================================================= */
 (() => {
   const socket = io();
   const $ = s => document.querySelector(s);
 
   let artist = null;   // perfil propio { id, name, category, repertoire }
-  let code = sessionStorage.getItem('vertigo_artist_code') || '';
+  let code = sessionStorage.getItem('tribu_artist_code') || '';
   let state = null;    // estado de la ronda en vivo (broadcast global)
 
-  const cat = () => window.vertigoCategory(artist.category);
+  const cat = () => window.tribuCategory(artist.category);
   function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
   function msg(t, err = false) {
     const m = $('#msg'); m.textContent = t; m.classList.toggle('err', err);
@@ -31,7 +31,7 @@
     socket.emit('artista_login', c, res => {
       if (res && res.ok) {
         code = c; artist = res.artist;
-        sessionStorage.setItem('vertigo_artist_code', code);
+        sessionStorage.setItem('tribu_artist_code', code);
         $('#gateMsg').textContent = '';
         openPanel();
       } else {
@@ -42,7 +42,7 @@
 
   $('#logoutLink').addEventListener('click', e => {
     e.preventDefault();
-    sessionStorage.removeItem('vertigo_artist_code');
+    sessionStorage.removeItem('tribu_artist_code');
     location.reload();
   });
 
@@ -78,7 +78,7 @@
         renderRepertoire();
         msg('✓ Agregado a tu repertorio');
       } else {
-        msg('No se pudo agregar: ' + window.vertigoError(res?.error), true);
+        msg('No se pudo agregar: ' + window.tribuError(res?.error), true);
       }
     });
   });
@@ -111,7 +111,7 @@
         if (!confirm(`¿Borrar "${it.title}" de tu repertorio?`)) return;
         socket.emit('artista_eliminar_item', { artistId: artist.id, code, itemId: it.id }, res => {
           if (res && res.ok) { artist = res.artist; renderRepertoire(); msg('✓ Eliminado de tu repertorio'); }
-          else msg('No se pudo borrar: ' + window.vertigoError(res?.error), true);
+          else msg('No se pudo borrar: ' + window.tribuError(res?.error), true);
         });
       });
       box.appendChild(row);
@@ -130,7 +130,7 @@
       row.querySelectorAll('[data-f]').forEach(i => { fields[i.dataset.f] = i.value.trim(); });
       socket.emit('artista_editar_item', { artistId: artist.id, code, itemId: it.id, fields }, res => {
         if (res && res.ok) { artist = res.artist; renderRepertoire(); msg('Actualizado ✓'); }
-        else msg('No se pudo guardar: ' + window.vertigoError(res?.error), true);
+        else msg('No se pudo guardar: ' + window.tribuError(res?.error), true);
       });
     });
     row.querySelector('.cancel-btn').addEventListener('click', renderRepertoire);
@@ -185,7 +185,7 @@
     btn.disabled = true;
     socket.emit('marcar_cumplido', { code, itemId }, res => {
       if (res && res.ok) msg(`${cat().doneCta} ✓`);
-      else { btn.disabled = false; msg('No se pudo marcar: ' + window.vertigoError(res?.error), true); }
+      else { btn.disabled = false; msg('No se pudo marcar: ' + window.tribuError(res?.error), true); }
     });
   }
 
