@@ -111,3 +111,7 @@ body {
   font-family: inherit;
 }
 .dev-credit b { color: var(--orange-2); font-weight: 700; opacity: .9; }
+
+/* Logo de TRIBU en lugar del texto de marca (cliente, TV, inicio del arcade) */
+.brand .brand-logo { display: block; height: 2.3em; width: auto; filter: drop-shadow(0 2px 10px rgba(0,0,0,.55)); }
+.brand.small .brand-logo { height: 1.9em; }
