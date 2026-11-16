@@ -443,7 +443,7 @@ function renderLive(s) {
     const sub = [x.artist, x.genre].filter(Boolean).join(' · ');
     return `${x.rank}. ${esc(x.title)}${sub ? ' — <i>' + esc(sub) + '</i>' : ''} — <b style="color:var(--orange)">${x.votes}</b> (${x.pct}%)`;
   }).join('<br>');
-  $('#live').innerHTML = `${pill} <span class="pill cat">${cat.icon} ${s.artistName || '—'}</span> &nbsp; total: <b>${s.total}</b><br><br>${rows || '<span class="empty">Sin ' + cat.itemLabelPlural.toLowerCase() + ' en votación.</span>'}`;
+  $('#live').innerHTML = `${pill} <span class="pill cat">${cat.icon} ${esc(s.artistName || '—')}</span> &nbsp; total: <b>${s.total}</b><br><br>${rows || '<span class="empty">Sin ' + cat.itemLabelPlural.toLowerCase() + ' en votación.</span>'}`;
 }
 socket.on('estado_actual', renderLive);
 socket.on('voto_recibido', ({ state }) => renderLive(state));

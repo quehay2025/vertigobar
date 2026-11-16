@@ -145,7 +145,19 @@ async function persist(r) {
 // ---------------------------------------------------------------------------
 //  SOCKET.IO
 // ---------------------------------------------------------------------------
+// Red de seguridad: un mensaje mal formado nunca debe tumbar el servidor en pleno show.
+process.on('uncaughtException', e => console.error('[uncaughtException]', e));
+process.on('unhandledRejection', e => console.error('[unhandledRejection]', e));
+const FREE_ARG_EVENTS = new Set(['registrar_cliente', 'artista_login']);   // reciben un texto, no un objeto
+
 io.on('connection', socket => {
+  // Descarta cualquier mensaje cuyo contenido no sea un objeto (o texto en los eventos que lo piden)
+  socket.use(([event, arg], next) => {
+    const isObj = arg !== null && typeof arg === 'object' && !Array.isArray(arg);
+    if (FREE_ARG_EVENTS.has(event)) return next();
+    if (arg === undefined || isObj) return next();
+    return next(new Error('payload_invalido'));
+  });
   socket.emit('estado_actual', publicState(round));
   socket.emit('proximo_show_actualizado', nextShowInfo);
 
@@ -164,7 +176,8 @@ io.on('connection', socket => {
   // ciclo/ítem/ronda. Mantiene a la gente votando toda la noche.
   socket.on('votar', async ({ clientId, itemId, name } = {}, ack) => {
     if (!round || !round.open) return ack?.({ ok: false, error: 'votacion_cerrada' });
-    if (!clientId) return ack?.({ ok: false, error: 'sin_id' });
+    if (!clientId || typeof clientId !== 'string' || clientId.length > 64) return ack?.({ ok: false, error: 'sin_id' });
+    if (typeof itemId !== 'string') return ack?.({ ok: false, error: 'item_invalido' });
     const now = Date.now();
     const last = cooldowns.get(clientId);
     if (last && now - last < VOTE_COOLDOWN_MS) {
@@ -273,6 +286,15 @@ io.on('connection', socket => {
     if (!canManageArtist(artist, { key, code })) return ack?.({ ok: false, error: 'no_autorizado' });
     const result = await artists.updateItem(artistId, itemId, fields || {});
     if (result.error) return ack?.({ ok: false, error: result.error });
+    // Si este artista está en vivo, el cambio se refleja ya en la ronda (conserva los votos)
+    if (round && round.artistId === artistId) {
+      const live = round.items.find(i => i.id === itemId);
+      if (live) {
+        live.title = result.item.title; live.artist = result.item.artist; live.genre = result.item.genre;
+        io.emit('estado_actual', publicState(round));
+        await persist(round);
+      }
+    }
     ack?.({ ok: true, artist: artists.publicArtist(result.artist) });
   });
 
@@ -281,6 +303,15 @@ io.on('connection', socket => {
     if (!canManageArtist(artist, { key, code })) return ack?.({ ok: false, error: 'no_autorizado' });
     const result = await artists.removeItem(artistId, itemId);
     if (result.error) return ack?.({ ok: false, error: result.error });
+    // Si este artista está en vivo, también sale de la votación
+    if (round && round.artistId === artistId) {
+      const before = round.items.length;
+      round.items = round.items.filter(i => i.id !== itemId);
+      if (round.items.length !== before) {
+        io.emit('estado_actual', publicState(round));
+        await persist(round);
+      }
+    }
     ack?.({ ok: true, artist: artists.publicArtist(result.artist) });
   });
 
