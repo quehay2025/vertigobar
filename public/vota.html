@@ -38,6 +38,7 @@
 
   <form id="nameForm" class="w-form" autocomplete="off">
     <input id="nameInput" type="text" maxlength="18" placeholder="Escribe tu nombre" required />
+    <div id="nameErr" class="name-err" role="alert"></div>
     <button class="btn" type="submit">Entrar&nbsp;▸</button>
   </form>
   <p class="w-foot">Vota las veces que quieras · cada minuto</p>
@@ -81,6 +82,7 @@
 <div id="flash" class="flash"></div>
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="names.js"></script>
 <script src="categories.js"></script>
 <script src="errors.js"></script>
 <script src="client.js"></script>

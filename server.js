@@ -8,6 +8,7 @@ import path from 'path';
 import { connectDB, RoundModel, isDbEnabled } from './db.js';
 import * as artists from './artists.js';
 import { getCategory, sanitizeItemFields } from './categories.js';
+import './public/names.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -183,7 +184,10 @@ io.on('connection', socket => {
     const state = publicState(round);
     ack?.({ ok: true, itemId, retryAt: now + VOTE_COOLDOWN_MS });
 
-    io.emit('voto_recibido', { itemId, name: name || null, itemTitle: item.title, state });
+    // Nombre ofensivo: el voto cuenta, pero el nombre nunca sale en la pantalla
+    let shownName = typeof name === 'string' ? name.trim().slice(0, 18) : null;
+    if (shownName && !globalThis.TribuNames.check(shownName).ok) shownName = null;
+    io.emit('voto_recibido', { itemId, name: shownName || null, itemTitle: item.title, state });
 
     // Empate
     const cuenta = {};

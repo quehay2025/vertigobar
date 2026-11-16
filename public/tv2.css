@@ -119,3 +119,4 @@ html,body{margin:0;height:100%;background:#0a0403;overflow:hidden}
 .shake{animation:shake .6s ease-out}
 @keyframes shake{0%,100%{transform:translate(0,0)}15%{transform:translate(-14px,6px)}30%{transform:translate(12px,-8px)}45%{transform:translate(-9px,5px)}60%{transform:translate(7px,-3px)}80%{transform:translate(-3px,2px)}}
 .cele .chip{visibility:hidden}
+@keyframes chipback{0%{opacity:0;transform:translate(-50%,0) scale(.7)}8%{opacity:1;transform:translate(-50%,-16px) scale(1.08)}14%{transform:translate(-50%,-16px) scale(1)}85%{opacity:1;transform:translate(-50%,-24px)}100%{opacity:0;transform:translate(-50%,-50px)}}

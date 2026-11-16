@@ -285,3 +285,9 @@ body::after {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Nombre no permitido */
+.name-err{display:none;text-align:center;font-size:1.02rem;line-height:1.3;color:#ffd9a0;background:rgba(179,42,12,.28);border:2px solid var(--ember);border-radius:6px;padding:10px 12px;box-shadow:0 0 18px rgba(255,90,20,.35)}
+.name-err.on{display:block;animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
+#nameInput.shake{animation:shk .45s ease-out;border-color:var(--ember)}
+@keyframes shk{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}

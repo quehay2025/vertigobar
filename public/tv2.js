@@ -182,8 +182,24 @@
     c.style.left = Math.max(TX + 120, Math.min(x, TX + TW - 120)) + 'px';
     c.style.top = (y - 76 - (stack % 3) * 54) + 'px';
     content.appendChild(c);
-    setTimeout(() => { c.remove(); chipN.set(itemId, Math.max(0, (chipN.get(itemId) || 1) - 1)); }, 15000);
+    c._item = itemId;
+    if (celeOn) c.dataset.held = '1'; else c._t = setTimeout(() => killChip(c), 15000);
     o.cnt.classList.add('bump'); setTimeout(() => o.cnt.classList.remove('bump'), 260);
+  }
+
+  function killChip(c) {
+    clearTimeout(c._t); c.remove();
+    chipN.set(c._item, Math.max(0, (chipN.get(c._item) || 1) - 1));
+  }
+  // Al empezar una celebración los nombres se pausan; al terminar reaparecen unos segundos
+  function holdChips() { document.querySelectorAll('.chip').forEach(c => { clearTimeout(c._t); c.dataset.held = '1'; }); }
+  function releaseChips() {
+    document.querySelectorAll('.chip[data-held]').forEach(c => {
+      delete c.dataset.held;
+      c.style.animation = 'none'; void c.offsetWidth;
+      c.style.animation = 'chipback 7s ease-out forwards';
+      c._t = setTimeout(() => killChip(c), 7000);
+    });
   }
 
   // ------------------------------------------------------------ SUPERACIÓN
@@ -222,7 +238,7 @@
   let celeOn = false, celeTimeout = null, celeFx = null;
   function showCelebration({ title, sub, votes, label, ms }) {
     clearTimeout(celeTimeout); clearInterval(celeFx);
-    celeOn = true; content.classList.add('cele');
+    holdChips(); celeOn = true; content.classList.add('cele');
     $('.cl').textContent = label || 'AHORA ESCUCHA';
     $('#pum').classList.remove('on');
     $('#cName').textContent = String(title).toUpperCase();
@@ -248,7 +264,7 @@
   }
   function hideCelebration() {
     clearTimeout(celeTimeout); clearInterval(celeFx);
-    celeOn = false; content.classList.remove('cele');
+    const wasOn = celeOn; celeOn = false; content.classList.remove('cele'); if (wasOn) releaseChips();
     $('#celeBg').classList.remove('on'); $('#celeTx').classList.remove('on');
   }
 

@@ -95,10 +95,23 @@
     e.preventDefault();
     const v = $('#nameInput').value.trim();
     if (!v) return;
+    const nm = window.TribuNames && window.TribuNames.check(v);
+    if (nm && !nm.ok) {
+      const inp = $('#nameInput');
+      showNameError(window.TribuNames.randomMsg());
+      inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
+      inp.focus(); inp.select();
+      return;
+    }
+    hideNameError();
     userName = v;
     localStorage.setItem('tribu_name', userName);
     enterMain();
   });
+
+  function showNameError(msg) { const m = $('#nameErr'); m.textContent = msg; m.classList.add('on'); }
+  function hideNameError() { $('#nameErr').classList.remove('on'); }
+  $('#nameInput').addEventListener('input', hideNameError);
 
   $('#changeNameLink').addEventListener('click', e => {
     e.preventDefault();
