@@ -182,7 +182,7 @@
     c.style.left = Math.max(TX + 120, Math.min(x, TX + TW - 120)) + 'px';
     c.style.top = (y - 76 - (stack % 3) * 54) + 'px';
     content.appendChild(c);
-    setTimeout(() => { c.remove(); chipN.set(itemId, Math.max(0, (chipN.get(itemId) || 1) - 1)); }, 10000);
+    setTimeout(() => { c.remove(); chipN.set(itemId, Math.max(0, (chipN.get(itemId) || 1) - 1)); }, 15000);
     o.cnt.classList.add('bump'); setTimeout(() => o.cnt.classList.remove('bump'), 260);
   }
 
@@ -190,8 +190,14 @@
   let pumT = 0;
   function overtakeFx(up, down, newRank) {
     if (celeOn || !up) return;
+    if (newRank === 0) {
+      showCelebration({ title: up.title, sub: up.sub, votes: up.v, label: 'VA PRIMERA', ms: 9000 });
+      content.classList.remove('shake'); void content.offsetWidth; content.classList.add('shake');
+      setTimeout(() => content.classList.remove('shake'), 650);
+      return;
+    }
     const pum = $('#pum');
-    const lead = newRank === 0;
+    const lead = false;
     pum.classList.toggle('lead', lead);
     $('#pumT').textContent = lead ? '¡NUEVO LÍDER!' : '¡PUM!';
     $('#pumT').style.fontSize = lead ? '170px' : '';
@@ -214,9 +220,11 @@
 
   // ------------------------------------------------------------ CELEBRACIÓN
   let celeOn = false, celeTimeout = null, celeFx = null;
-  function showCelebration({ title, sub, votes }) {
+  function showCelebration({ title, sub, votes, label, ms }) {
     clearTimeout(celeTimeout); clearInterval(celeFx);
-    celeOn = true;
+    celeOn = true; content.classList.add('cele');
+    $('.cl').textContent = label || 'AHORA ESCUCHA';
+    $('#pum').classList.remove('on');
     $('#cName').textContent = String(title).toUpperCase();
     $('#cSub').textContent = sub || '';
     $('#cSub').style.display = sub ? '' : 'none';
@@ -236,11 +244,11 @@
         if (f % 60 === 0) burst(300 + Math.random() * 1320, 420 + Math.random() * 300, 28, ['gold', 'red', 'teal'][Math.floor(Math.random() * 3)], 8);
       }
     }, 40);
-    celeTimeout = setTimeout(hideCelebration, 30000);
+    celeTimeout = setTimeout(hideCelebration, ms || 30000);
   }
   function hideCelebration() {
     clearTimeout(celeTimeout); clearInterval(celeFx);
-    celeOn = false;
+    celeOn = false; content.classList.remove('cele');
     $('#celeBg').classList.remove('on'); $('#celeTx').classList.remove('on');
   }
 

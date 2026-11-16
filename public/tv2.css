@@ -56,7 +56,7 @@ html,body{margin:0;height:100%;background:#0a0403;overflow:hidden}
 .cnt b{font-weight:700;color:var(--c);text-shadow:0 0 18px var(--c);display:inline-block;transition:transform .25s}
 .cnt b.bump{transform:scale(1.35)}
 .cnt small{display:block;font-family:'Rajdhani',sans-serif;font-size:22px;letter-spacing:4px;color:#b59469;margin-top:2px}
-.chip{position:absolute;z-index:22;font-family:'Oswald',sans-serif;font-weight:700;font-size:40px;letter-spacing:2px;color:#2a1400;background:linear-gradient(90deg,#ffd27a,#fff1c9,#ffd27a);padding:4px 22px;border-radius:30px;white-space:nowrap;box-shadow:0 0 26px rgba(255,170,60,.8);animation:chip 10s ease-out forwards;pointer-events:none}
+.chip{position:absolute;z-index:22;font-family:'Oswald',sans-serif;font-weight:700;font-size:40px;letter-spacing:2px;color:#2a1400;background:linear-gradient(90deg,#ffd27a,#fff1c9,#ffd27a);padding:4px 22px;border-radius:30px;white-space:nowrap;box-shadow:0 0 26px rgba(255,170,60,.8);animation:chip 15s ease-out forwards;pointer-events:none}
 @keyframes chip{0%{opacity:0;transform:translate(-50%,0) scale(.5)}2%{opacity:1;transform:translate(-50%,-14px) scale(1.18)}5%{transform:translate(-50%,-14px) scale(1)}88%{opacity:1;transform:translate(-50%,-30px) scale(1)}100%{opacity:0;transform:translate(-50%,-60px) scale(.96)}}
 #tick{position:absolute;left:120px;top:946px;width:1170px;height:62px;display:flex;align-items:center;padding:0 26px;box-sizing:border-box;font-family:'Rajdhani',sans-serif;font-size:32px;font-weight:700;letter-spacing:2px;color:#ffe3b8;background:#1d0e08;border:2px solid #a9702b;clip-path:polygon(18px 0,100% 0,calc(100% - 18px) 100%,0 100%);opacity:0;transform:translateY(14px);transition:all .4s}
 #tick.on{opacity:1;transform:none}
@@ -118,3 +118,4 @@ html,body{margin:0;height:100%;background:#0a0403;overflow:hidden}
 #pum.lead .p1{color:#ffe08a;text-shadow:0 0 60px #ffc04d,0 0 140px #ff8a1a}
 .shake{animation:shake .6s ease-out}
 @keyframes shake{0%,100%{transform:translate(0,0)}15%{transform:translate(-14px,6px)}30%{transform:translate(12px,-8px)}45%{transform:translate(-9px,5px)}60%{transform:translate(7px,-3px)}80%{transform:translate(-3px,2px)}}
+.cele .chip{visibility:hidden}
