@@ -22,6 +22,10 @@ window.TRIBU_ERRORS = {
   demasiados_votos: 'Mucho movimiento ahora mismo. Intenta de nuevo en unos segundos.',
   demasiados_mensajes: 'Vas muy rápido. Espera un momento.',
   repertorio_lleno: 'Llegaste al máximo de 200 elementos. Borra alguno para agregar otro.',
+  enlace_invalido: 'Este enlace de mesa no es válido. Escanea de nuevo el QR de tu mesa.',
+  mesa_invalida: 'Mesa no válida.',
+  nombre_ofensivo: 'Ese nombre no va con la tribu. Prueba con otro.',
+  demasiado_rapido: 'Acabas de cambiar el nombre. Espera unos segundos.',
   sin_horario: 'Todavía no has definido una hora para el próximo show.'
 };
 

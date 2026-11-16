@@ -183,7 +183,7 @@
     c.style.top = (y - 76 - (stack % 3) * 54) + 'px';
     content.appendChild(c);
     c._item = itemId;
-    if (celeOn) c.dataset.held = '1'; else c._t = setTimeout(() => killChip(c), 15000);
+    if (celeOn || mesaOn) c.dataset.held = '1'; else c._t = setTimeout(() => killChip(c), 15000);
     o.cnt.classList.add('bump'); setTimeout(() => o.cnt.classList.remove('bump'), 260);
   }
 
@@ -234,9 +234,51 @@
     for (let i = 0; i < 4; i++) setTimeout(() => burst(300 + Math.random() * 1320, 300 + Math.random() * 500, 50, ['gold', 'red', 'teal'][i % 3], 10), 250 + i * 330);
   }
 
+  // --------------------------------------------------------- LA MESA REINA
+  // Cada cierto rato la pantalla cambia del llamado de la tribu a la mesa que más consume.
+  const MESA_EVERY_MS = 180000, MESA_SHOW_MS = 25000;
+  let mesasData = [], mesaOn = false, mesaTimer = null, mesaFx = null, mesaLastEnd = Date.now() - (MESA_EVERY_MS - 60000);
+  function showMesas({ title, ms } = {}) {
+    if (celeOn || !mesasData.length) return;
+    clearTimeout(mesaTimer); clearInterval(mesaFx);
+    if (!mesaOn) holdChips();
+    mesaOn = true; content.classList.add('cele');
+    const lead = mesasData[0];
+    $('#mTitle').textContent = title || 'LA MESA REINA';
+    $('#mLeader').textContent = lead.label;
+    const rows = $('#mRows'); rows.innerHTML = '';
+    mesasData.slice(0, 5).forEach((m, i) => {
+      const r = document.createElement('div'); r.className = 'mr';
+      r.innerHTML = '<div class="mk">' + (i + 1) + '</div><div class="mt"></div><div class="mb"><i></i></div>';
+      r.querySelector('.mt').textContent = m.label;
+      r.style.transitionDelay = (0.5 + i * 0.18) + 's';
+      rows.appendChild(r);
+    });
+    $('#mesaBg').classList.add('on');
+    const tx = $('#mesaTx'); tx.classList.remove('on'); void tx.offsetWidth; tx.classList.add('on');
+    setTimeout(() => rows.querySelectorAll('.mr').forEach((r, i) => { r.querySelector('i').style.width = mesasData[i].pct + '%'; }), 60);
+    let f = 0;
+    mesaFx = setInterval(() => {
+      f++;
+      const n = Math.max(3, Math.round(12 * q));
+      for (let i = 0; i < n; i++) spawn(Math.random() * SX - OX, 1060 + OY, (Math.random() - .5) * 1.6, -(3 + Math.random() * 5), 26 + Math.random() * 26, 60 + Math.random() * 40, ['gold', 'red', 'gold'][Math.floor(Math.random() * 3)]);
+      if (f % 25 === 1) burst(960, 300, 46, 'gold', 9);
+    }, 40);
+    mesaTimer = setTimeout(hideMesas, ms || MESA_SHOW_MS);
+  }
+  function hideMesas() {
+    if (!mesaOn) return;
+    clearTimeout(mesaTimer); clearInterval(mesaFx);
+    mesaOn = false; mesaLastEnd = Date.now();
+    $('#mesaBg').classList.remove('on'); $('#mesaTx').classList.remove('on');
+    if (!celeOn) { content.classList.remove('cele'); releaseChips(); }
+  }
+  setInterval(() => { if (!mesaOn && !celeOn && mesasData.length && Date.now() - mesaLastEnd > MESA_EVERY_MS) showMesas(); }, 1000);
+
   // ------------------------------------------------------------ CELEBRACIÓN
   let celeOn = false, celeTimeout = null, celeFx = null;
   function showCelebration({ title, sub, votes, label, ms }) {
+    if (mesaOn) { clearTimeout(mesaTimer); clearInterval(mesaFx); mesaOn = false; mesaLastEnd = Date.now(); $('#mesaBg').classList.remove('on'); $('#mesaTx').classList.remove('on'); }
     clearTimeout(celeTimeout); clearInterval(celeFx);
     holdChips(); celeOn = true; content.classList.add('cele');
     $('.cl').textContent = label || 'AHORA ESCUCHA';
@@ -368,6 +410,8 @@
     if (!s) say('LA TRIBU SE REÚNE<b>·</b>VOTA CUANDO ARRANQUE EL SHOW');
   });
 
+  socket.on('mesas_actualizadas', list => { mesasData = Array.isArray(list) ? list : []; });
+  socket.on('mesa_nueva_reina', ({ mesa }) => { if (mesa) showMesas({ title: 'NUEVA MESA REINA', ms: 14000 }); });
   socket.on('proximo_show_actualizado', info => { nextShowInfo = info; renderNextShow(); });
 
   socket.on('voto_recibido', ({ itemId, name, itemTitle, state: s }) => {

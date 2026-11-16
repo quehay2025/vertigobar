@@ -34,8 +34,13 @@ const artistSchema = new mongoose.Schema({
   updatedAt: Date
 });
 
+const mesaNameSchema = new mongoose.Schema({ id: { type: String, index: true, unique: true }, name: String });
+export const MesaNameModel = mongoose.model('MesaName', mesaNameSchema);
 export const RoundModel = mongoose.model('Round', roundSchema);
 export const ArtistModel = mongoose.model('Artist', artistSchema);
+
+// Solo para pruebas: simula una base conectada
+export function __setDbEnabledForTests(v) { dbEnabled = !!v; }
 
 export function isDbEnabled() {
   return dbEnabled;

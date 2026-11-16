@@ -10,6 +10,7 @@ import { connectDB, RoundModel, isDbEnabled } from './db.js';
 import * as artists from './artists.js';
 import { getCategory, sanitizeItemFields } from './categories.js';
 import './public/names.js';
+import * as mesas from './mesas.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -94,6 +95,30 @@ setInterval(() => {
   const now = Date.now();
   for (const [id, ts] of cooldowns) if (now - ts > VOTE_COOLDOWN_MS) cooldowns.delete(id);
 }, 10 * 60 * 1000);
+
+// ---------------------------------------------------------------------------
+//  MESAS: lectura periódica de la app KI (solo lectura) o datos simulados
+// ---------------------------------------------------------------------------
+const MESA_SECRET = process.env.MESA_SECRET || crypto.createHash('sha256').update('mesa|' + ADMIN_KEY).digest('hex');
+const KI_API_URL = process.env.KI_API_URL || '';
+const KI_API_KEY = process.env.KI_API_KEY || '';
+const MESAS_MOCK = process.env.MESAS_MOCK === '1';
+const MESAS_POLL_MS = Math.max(10000, Number(process.env.MESAS_POLL_MS) || 30000);
+async function pollMesas() {
+  try {
+    let list = null;
+    if (KI_API_URL) list = await mesas.fetchKi({ url: KI_API_URL, key: KI_API_KEY });
+    else if (MESAS_MOCK) list = mesas.mockStep();
+    if (!list) return;
+    const { changed, newLeader } = mesas.apply(list);
+    if (changed) io.emit('mesas_actualizadas', mesas.publicMesas());
+    if (newLeader) io.emit('mesa_nueva_reina', { mesa: newLeader });
+  } catch (e) { mesas.fail(e); console.error('[mesas] KI:', e.message); }
+}
+if (KI_API_URL || MESAS_MOCK) {
+  mesas.restoreNames().then(pollMesas);
+  setInterval(pollMesas, MESAS_POLL_MS).unref();
+}
 
 // Próximo show: independiente de la ronda activa (el operador lo actualiza
 // libremente, aunque no haya votación abierta). No se persiste a Mongo: es
@@ -259,6 +284,7 @@ io.on('connection', socket => {
   });
   socket.emit('estado_actual', publicState(round));
   socket.emit('proximo_show_actualizado', nextShowInfo);
+  socket.emit('mesas_actualizadas', mesas.publicMesas());
 
   // Identidad anti-spam (el cliente guarda el clientId en LocalStorage).
   // Devuelve el cooldown vigente (si lo hay) para que el cliente recupere
@@ -427,6 +453,26 @@ io.on('connection', socket => {
     ack?.({ ok: true, artist: artists.publicArtist(result.artist) });
   });
 
+  // ----------------------------- MESAS -----------------------------
+  // La mesa se pone nombre con un enlace firmado (QR de la mesa). El nombre pasa por el filtro de groserías.
+  socket.on('mesa_nombrar', async ({ mesa, sig, name } = {}, ack) => {
+    if (isLocked(socket)) return ack?.({ ok: false, error: 'demasiados_intentos' });
+    if (!mesas.verify(mesa, sig, MESA_SECRET)) { registerFail(socket); return ack?.({ ok: false, error: 'enlace_invalido' }); }
+    const r = await mesas.setName(mesa, name);
+    if (r.error) return ack?.({ ok: false, error: r.error });
+    io.emit('mesas_actualizadas', mesas.publicMesas());
+    ack?.({ ok: true, name: r.name });
+  });
+  // El operador genera los enlaces (para imprimir el QR de cada mesa)
+  socket.on('admin_mesas_links', ({ key, from, to } = {}, ack) => {
+    if (!adminOk(socket, key)) return ack?.({ ok: false, error: 'no_autorizado' });
+    const a = Math.max(1, Math.floor(Number(from) || 1)), b = Math.min(a + 99, Math.floor(Number(to) || a));
+    const base = process.env.PUBLIC_BASE_URL || 'https://arcade.tribugastropub.com';
+    const links = [];
+    for (let m = a; m <= b; m++) links.push({ mesa: String(m), url: `${base}/mesa?m=${m}&s=${mesas.sign(String(m), MESA_SECRET)}` });
+    ack?.({ ok: true, links });
+  });
+
   // ----------------------------- ADMIN: artistas -----------------------------
   socket.on('admin_crear_artista', async ({ key, name, handle, category } = {}, ack) => {
     if (!adminOk(socket, key)) return ack?.({ ok: false, error: 'no_autorizado' });
@@ -565,6 +611,7 @@ app.get('/tv2', (req, res) => res.sendFile(path.join(__dirname, 'public', 'tv2.h
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/artist', (req, res) => res.sendFile(path.join(__dirname, 'public', 'artist.html')));
 app.get('/artista', (req, res) => res.sendFile(path.join(__dirname, 'public', 'artist.html')));
+app.get('/mesa', (req, res) => res.sendFile(path.join(__dirname, 'public', 'mesa.html')));
 app.get('/vota', (req, res) => res.sendFile(path.join(__dirname, 'public', 'vota.html')));
 app.get('/votar', (req, res) => res.sendFile(path.join(__dirname, 'public', 'vota.html')));
 

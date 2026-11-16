@@ -168,6 +168,19 @@
     <div class="status" id="nsStatus"></div>
     <div class="live-state" id="nsLive" style="margin-top:8px;"></div>
   </div>
+
+  <div class="card">
+    <h2>LA MESA REINA</h2>
+    <label>Enlaces para el QR de cada mesa (desde la mesa N hasta la mesa M)</label>
+    <div class="row-actions">
+      <input id="mzFrom" type="number" min="1" value="1" style="max-width:110px" />
+      <input id="mzTo" type="number" min="1" value="20" style="max-width:110px" />
+      <button class="btn" id="mzGenBtn">▸ Generar enlaces</button>
+      <button class="btn ghost" id="mzCopyBtn">Copiar todos</button>
+    </div>
+    <div class="status" id="mzStatus"></div>
+    <div id="mzList" class="live-state" style="margin-top:8px;max-height:260px;overflow:auto;font-size:.8rem;word-break:break-all;"></div>
+  </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -182,6 +195,22 @@ let artistsCache = [];
 // ---- Acceso por PIN (persistido en esta pestaña) ----
 let adminKey = sessionStorage.getItem('tribu_admin_pin') || '';
 function key() { return adminKey; }
+let mzLinks = [];
+document.addEventListener('DOMContentLoaded', () => {
+  $('#mzGenBtn').onclick = () => {
+    socket.emit('admin_mesas_links', { key: key(), from: $('#mzFrom').value, to: $('#mzTo').value }, res => {
+      if (!res?.ok) return setStatus('#mzStatus', 'Error: ' + window.tribuError(res?.error), 'err');
+      mzLinks = res.links;
+      $('#mzList').innerHTML = res.links.map(l => `<div><b>Mesa ${esc(l.mesa)}</b> ${esc(l.url)}</div>`).join('');
+      setStatus('#mzStatus', res.links.length + ' enlaces. Cada uno lleva su firma: imprime su QR en la mesa correspondiente.', 'ok');
+    });
+  };
+  $('#mzCopyBtn').onclick = () => {
+    if (!mzLinks.length) return setStatus('#mzStatus', 'Primero genera los enlaces', 'err');
+    navigator.clipboard?.writeText(mzLinks.map(l => `Mesa ${l.mesa}\t${l.url}`).join('\n'));
+    setStatus('#mzStatus', 'Copiado', 'ok');
+  };
+});
 
 $('#pinForm').addEventListener('submit', e => {
   e.preventDefault();

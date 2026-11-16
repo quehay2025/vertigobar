@@ -153,3 +153,11 @@ Alternativas equivalentes: Railway, Fly.io, o cualquier VPS con `node server.js`
 - El rebase reposiciona las filas por `transform` (no por reflow del DOM) → transiciones fluidas.
 - El confeti de la celebración es un canvas 2D ligero que se autodetiene a los ~8 s.
 - Sin dependencias de render pesadas ni vídeos: seguro para móviles de gama media/baja y datos móviles.
+
+
+## La mesa reina (consumo por mesa)
+Cada cierto rato (3 min) la pantalla `/tv2` pasa del llamado de la tribu a **LA MESA REINA**: el ranking de las mesas que más consumen, leído de la app KI. Cuando una mesa le quita el primer lugar a otra sale **NUEVA MESA REINA** al instante, y una celebración de canción siempre tiene prioridad.
+
+- **Datos:** el servidor consulta `KI_API_URL` (solo lectura, `Authorization: Bearer KI_API_KEY`, https) cada `MESAS_POLL_MS`. La respuesta debe ser `{"mesas":[{"mesa":"12","total":134.5}]}`. Se valida estrictamente, se descarta lo raro y **el total real nunca sale del servidor**: a las pantallas solo llega el % frente a la mesa líder. Si KI falla, la escena se oculta y el show de música sigue igual.
+- **Nombre de mesa:** en `/admin` > LA MESA REINA se generan los enlaces firmados (uno por mesa) para imprimir su QR. Al escanearlo, la mesa se pone nombre en `/mesa` (con el filtro de groserías). Un enlace falso no sirve.
+- **Sin KI todavía:** `MESAS_MOCK=1` simula mesas para probar la pantalla.

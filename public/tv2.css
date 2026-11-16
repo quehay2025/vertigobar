@@ -120,3 +120,24 @@ html,body{margin:0;height:100%;background:#0a0403;overflow:hidden}
 @keyframes shake{0%,100%{transform:translate(0,0)}15%{transform:translate(-14px,6px)}30%{transform:translate(12px,-8px)}45%{transform:translate(-9px,5px)}60%{transform:translate(7px,-3px)}80%{transform:translate(-3px,2px)}}
 .cele .chip{visibility:hidden}
 @keyframes chipback{0%{opacity:0;transform:translate(-50%,0) scale(.7)}8%{opacity:1;transform:translate(-50%,-16px) scale(1.08)}14%{transform:translate(-50%,-16px) scale(1)}85%{opacity:1;transform:translate(-50%,-24px)}100%{opacity:0;transform:translate(-50%,-50px)}}
+
+/* ---- LA MESA REINA ---- */
+#mesaBg{position:absolute;inset:0;z-index:16;background:radial-gradient(1100px 760px at 50% 50%,rgba(40,9,3,.97),rgba(4,2,1,.99));opacity:0;pointer-events:none;transition:opacity .6s}
+#mesaTx{position:absolute;inset:0;z-index:23;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;opacity:0;pointer-events:none;transition:opacity .6s}
+#mesaBg.on,#mesaTx.on{opacity:1}
+#mesaTx .crown{width:150px;height:auto;filter:drop-shadow(0 0 26px rgba(255,170,40,.8))}
+#mesaTx.on .crown{animation:crownin .9s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes crownin{0%{transform:translateY(-120px) scale(.3) rotate(-14deg);opacity:0}100%{transform:none;opacity:1}}
+.m1{font-size:116px;font-weight:700;letter-spacing:6px;line-height:1;margin-top:6px;white-space:nowrap}
+#mesaTx.on .m1{animation:pop .8s .15s cubic-bezier(.2,1.4,.4,1) both}
+.m2{font-size:92px;font-weight:700;letter-spacing:5px;margin-top:10px;color:#fff4dc;text-shadow:0 0 30px rgba(255,150,40,.65);max-width:1500px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-transform:uppercase}
+#mesaTx.on .m2{animation:pop .8s .35s cubic-bezier(.2,1.4,.4,1) both}
+.mrows{width:1100px;margin-top:34px;display:flex;flex-direction:column;gap:14px}
+.mr{display:flex;align-items:center;gap:20px;height:64px;opacity:0;transform:translateX(-60px);transition:opacity .5s,transform .5s}
+#mesaTx.on .mr{opacity:1;transform:none}
+.mr .mk{flex:0 0 64px;font-family:'Oswald',sans-serif;font-weight:700;font-size:38px;color:#ffc04d;text-align:center;position:relative}
+.mr .mk::before{content:'';position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border:3px solid #c98a3a;background:#1a0c07;transform:rotate(45deg);z-index:-1}
+.mr .mt{flex:0 0 330px;font-family:'Oswald',sans-serif;font-weight:600;font-size:38px;letter-spacing:2px;color:#f4e2c4;text-align:left;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mr .mb{flex:1;height:34px;background:#1a0c07;border:2px solid #7a4d1f;border-radius:4px;overflow:hidden}
+.mr .mb i{display:block;height:100%;width:0;background:linear-gradient(90deg,#d4380f,#ff6a1a,#ffc04d);box-shadow:0 0 22px rgba(255,120,30,.7);transition:width 1.6s cubic-bezier(.2,.9,.3,1)}
+.mr:first-child .mt{color:#ffe08a}

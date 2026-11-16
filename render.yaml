@@ -29,3 +29,9 @@ services:
         sync: false          # define tu clave en el dashboard
       - key: MONGODB_URI
         sync: false          # pega tu cadena de MongoDB Atlas (opcional)
+      - key: KI_API_URL
+        sync: false          # API de KI de solo lectura (consumo por mesa)
+      - key: KI_API_KEY
+        sync: false
+      - key: MESA_SECRET
+        sync: false          # firma de los QR de mesa

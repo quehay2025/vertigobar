@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0403" />
+<title>Tribu Gastro Pub · Nombre de tu mesa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vota.css" />
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<pattern id="bandm" width="32" height="44" patternUnits="userSpaceOnUse" patternTransform="scale(.7)">
+ <rect width="32" height="44" fill="#1a0c07"/>
+ <path d="M2 4H14L8 17Z" fill="#c98a3a"/><path d="M18 4H30L24 17Z" fill="#7a4d1f"/>
+ <path d="M0 40H16V27H32V40" fill="none" stroke="#e08a2b" stroke-width="3"/>
+ <rect x="20" y="31" width="5" height="5" transform="rotate(45 22.5 33.5)" fill="#c98a3a"/>
+</pattern></defs></svg>
+<div class="band top" aria-hidden="true"><svg><rect width="100%" height="100%" fill="url(#bandm)"/></svg></div>
+<div class="band bot" aria-hidden="true"><svg><rect width="100%" height="100%" fill="url(#bandm)"/></svg></div>
+
+<section id="welcome" class="screen active">
+  <div class="w-top">
+    <img class="w-logo" src="/img/logo.png" alt="TRIBU Gastro Pub" />
+    <div class="w-tag">LA MESA REINA</div>
+  </div>
+  <div class="w-hero">
+    <h1 class="fire-text" id="mesaTitle">TU MESA</h1>
+    <p class="w-lead" id="lead">Ponle nombre a tu mesa y compite por ser la que más consume esta noche.</p>
+  </div>
+  <form id="f" class="w-form" autocomplete="off">
+    <input id="n" type="text" maxlength="20" placeholder="Nombre de la mesa" required />
+    <div id="err" class="name-err" role="alert"></div>
+    <button class="btn" type="submit">Guardar nombre&nbsp;▸</button>
+  </form>
+  <p class="w-foot" id="foot">Aparecerá en la pantalla grande</p>
+</section>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="names.js"></script>
+<script src="errors.js"></script>
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const q = new URLSearchParams(location.search);
+  const mesa = (q.get('m') || '').slice(0, 12), sig = (q.get('s') || '').slice(0, 16);
+  const socket = io();
+  $('#mesaTitle').textContent = mesa ? 'MESA ' + mesa : 'TU MESA';
+  if (!mesa || !sig) { $('#f').style.display = 'none'; $('#lead').textContent = 'Escanea el QR de tu mesa para ponerle nombre.'; }
+  const err = m => { const e = $('#err'); e.textContent = m; e.classList.add('on'); };
+  $('#n').addEventListener('input', () => $('#err').classList.remove('on'));
+  $('#f').addEventListener('submit', e => {
+    e.preventDefault();
+    const name = $('#n').value.trim();
+    const c = window.TribuNames.check(name);
+    if (!c.ok) { err(window.TribuNames.randomMsg()); return; }
+    socket.emit('mesa_nombrar', { mesa, sig, name }, res => {
+      if (res && res.ok) {
+        $('#f').style.display = 'none';
+        $('#mesaTitle').textContent = res.name.toUpperCase();
+        $('#lead').textContent = '¡Listo! Mira la pantalla grande: tu mesa ya compite.';
+        $('#foot').textContent = 'Puedes cambiar el nombre cuando quieras';
+        setTimeout(() => { $('#f').style.display = ''; }, 25000);
+      } else err(window.tribuError(res && res.error));
+    });
+  });
+})();
+</script>
+</body>
+</html>
