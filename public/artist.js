@@ -35,7 +35,7 @@
         $('#gateMsg').textContent = '';
         openPanel();
       } else {
-        $('#gateMsg').textContent = 'Código incorrecto';
+        $('#gateMsg').textContent = window.tribuError(res && res.error === 'demasiados_intentos' ? 'demasiados_intentos' : 'codigo_invalido');
       }
     });
   }

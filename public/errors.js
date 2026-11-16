@@ -18,6 +18,10 @@ window.TRIBU_ERRORS = {
   nombre_requerido: 'Escribe un nombre para el artista.',
   categoria_invalida: 'Elige una categoría válida.',
   sin_titulo: 'Escribe quién o qué sigue.',
+  demasiados_intentos: 'Demasiados intentos fallidos. Espera 5 minutos e intenta de nuevo.',
+  demasiados_votos: 'Mucho movimiento ahora mismo. Intenta de nuevo en unos segundos.',
+  demasiados_mensajes: 'Vas muy rápido. Espera un momento.',
+  repertorio_lleno: 'Llegaste al máximo de 200 elementos. Borra alguno para agregar otro.',
   sin_horario: 'Todavía no has definido una hora para el próximo show.'
 };
 

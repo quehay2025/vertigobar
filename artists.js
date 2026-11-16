@@ -7,6 +7,9 @@ import { nanoid } from 'nanoid';
 import { ArtistModel, isDbEnabled } from './db.js';
 import { isValidCategory, sanitizeItemFields } from './categories.js';
 
+// Máximo de temas/géneros por artista (un show de 2 horas cabe de sobra)
+export const MAX_REPERTOIRE = 200;
+
 const artistsById = new Map();
 const idByCode = new Map();
 
@@ -136,6 +139,7 @@ export async function deleteArtist(artistId) {
 export async function addItem(artistId, fields) {
   const artist = artistsById.get(artistId);
   if (!artist) return { error: 'artista_invalido' };
+  if (artist.repertoire.length >= MAX_REPERTOIRE) return { error: 'repertorio_lleno' };
   const clean = sanitizeItemFields(artist.category, fields);
   if (!clean) return { error: 'campos_invalidos' };
   const item = { id: nanoid(6), ...clean };
