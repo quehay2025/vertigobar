@@ -23,9 +23,8 @@ const ADMIN_KEY = process.env.ADMIN_KEY || 'tribu-admin';
 
 // Cada dispositivo (clientId) puede votar una vez por ventana de tiempo,
 // sin importar de qué ítem/ciclo/ronda se trate (mantiene a la gente
-// participando toda la noche, en vez de "un voto y listo"). 3 minutos ≈
-// duración típica de una canción.
-const VOTE_COOLDOWN_MS = 3 * 60 * 1000;
+// participando toda la noche, en vez de "un voto y listo"). 1 minuto.
+const VOTE_COOLDOWN_MS = 60 * 1000;
 
 // ---------------------------------------------------------------------------
 //  ESTADO EN MEMORIA (fuente de verdad para tiempo real; Mongo persiste)

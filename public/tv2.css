@@ -2,17 +2,18 @@
    TRIBU GASTRO PUB, Pantalla del Bar v2 (tema tribal / fuego)
    Escenario fijo de 1920x1080 escalado al tamaño de la pantalla.
    ========================================================================= */
-html,body{margin:0;height:100%;background:#050302;overflow:hidden}
-#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;color:#f4e2c4;
+html,body{margin:0;height:100%;background:#0a0403;overflow:hidden}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;color:#f4e2c4;
  font-family:'Oswald','Bebas Neue','Arial Narrow',Impact,sans-serif;
- background:radial-gradient(1500px 800px at 40% 105%,#4a1306 0%,#220a05 42%,#0a0403 100%)}
+ background:radial-gradient(85% 80% at 40% 105%,#4a1306 0%,#220a05 42%,#0a0403 100%)}
+#content{position:absolute;left:0;top:0;width:1920px;height:1080px}
 #stone{position:absolute;inset:0;opacity:.5;mix-blend-mode:overlay;pointer-events:none;
  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .75  0 0 0 0 .5  0 0 0 0 .3  0 0 0 .9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
 #sun1,#sun2{position:absolute;opacity:.16;pointer-events:none}
 #sun1{left:60px;top:-30px;width:1300px;height:1300px;animation:spin 190s linear infinite}
 #sun2{left:1215px;top:300px;width:760px;height:760px;opacity:.2;animation:spin 120s linear infinite reverse}
 @keyframes spin{to{transform:rotate(360deg)}}
-.band{position:absolute;left:0;width:1920px;height:44px}
+.band{position:absolute;left:0;width:100%;height:44px}
 #bandT{top:0}#bandB{bottom:0}
 .band::after{content:"";position:absolute;left:0;right:0;height:3px;background:#e08a2b;box-shadow:0 0 18px #ff6a1a}
 #bandT::after{bottom:-3px}#bandB::after{top:-3px}
@@ -74,7 +75,7 @@ html,body{margin:0;height:100%;background:#050302;overflow:hidden}
 .val{font-size:42px;font-weight:700;letter-spacing:2px;line-height:1.1;margin-top:2px}
 .live{display:inline-block;width:18px;height:18px;border-radius:50%;background:#ff5a14;box-shadow:0 0 16px #ff5a14;margin-right:12px;animation:pulse 1.2s ease-in-out infinite;vertical-align:middle}
 #cd{font-size:60px;font-weight:700;color:#ffc04d;text-shadow:0 0 20px rgba(255,150,40,.6);line-height:1.1}
-#fx{position:absolute;left:0;top:0;width:1920px;height:1080px;z-index:20;pointer-events:none}
+#fx{position:absolute;left:0;top:0;z-index:20;pointer-events:none}
 #celeBg{position:absolute;inset:0;z-index:15;background:radial-gradient(1000px 700px at 50% 55%,rgba(35,8,3,.88),rgba(4,2,1,.93));opacity:0;pointer-events:none;transition:opacity .6s}
 #celeTx{position:absolute;inset:0;z-index:25;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;opacity:0;pointer-events:none;transition:opacity .6s}
 #celeBg.on,#celeTx.on{opacity:1}

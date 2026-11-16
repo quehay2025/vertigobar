@@ -1,6 +1,6 @@
 /* =========================================================================
    TRIBU GASTRO PUB — Cliente (mobile)
-   Modelo de voto: cada dispositivo puede votar una vez cada 3 minutos
+   Modelo de voto: cada dispositivo puede votar una vez cada minuto
    (VOTE_COOLDOWN_MS en el servidor), sin importar de qué tema/ciclo se trate.
    El nombre y el cooldown viven en LocalStorage para sobrevivir recargas.
    ========================================================================= */

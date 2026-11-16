@@ -3,18 +3,32 @@
    Mismos eventos que /tv: estado_actual, voto_recibido, rebase_ocurrido,
    empate_detectado, tema_cumplido, ronda_iniciada, ronda_concluida,
    proximo_show_actualizado.
-   Todo el escenario es 1920x1080 y se escala al tamaño de la pantalla.
+   El contenido es 1920x1080, se escala y centra; el fondo llena toda la pantalla.
    ========================================================================= */
 (() => {
   const socket = io();
   const $ = s => document.querySelector(s);
   const stage = $('#stage');
 
+  const content = $('#content');
+  const cv = $('#fx'), ctx = cv.getContext('2d');
+  // El escenario ocupa SIEMPRE toda la pantalla: el contenido (1920x1080) se
+  // escala para caber y se centra; los lados o el borde sobrante se rellenan
+  // con el fondo, las franjas y el fuego (sin márgenes negros).
+  let SX = 1920, SY = 1080, OX = 0, OY = 0;
   function fit() {
-    const s = Math.min(innerWidth / 1920, innerHeight / 1080);
-    stage.style.transform = 'translate(' + (-960 * s) + 'px,' + (-540 * s) + 'px) scale(' + s + ')';
+    const W = window.innerWidth, H = window.innerHeight;
+    const s = Math.min(W / 1920, H / 1080);
+    SX = W / s; SY = H / s; OX = (SX - 1920) / 2; OY = (SY - 1080) / 2;
+    stage.style.width = SX + 'px'; stage.style.height = SY + 'px';
+    stage.style.transform = 'scale(' + s + ')';
+    content.style.left = OX + 'px'; content.style.top = OY + 'px';
+    cv.width = Math.ceil(SX); cv.height = Math.ceil(SY);
+    cv.style.width = SX + 'px'; cv.style.height = SY + 'px';
   }
-  addEventListener('resize', fit); fit();
+  addEventListener('resize', fit);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+  fit();
 
   const esc = str => String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -127,7 +141,6 @@
   }
 
   // ------------------------------------------------------------ PARTÍCULAS
-  const cv = $('#fx'), ctx = cv.getContext('2d');
   function sprite(a, b, c) {
     const k = document.createElement('canvas'); k.width = k.height = 64;
     const g = k.getContext('2d'), r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
@@ -165,7 +178,7 @@
     const c = document.createElement('div'); c.className = 'chip';
     c.textContent = '+1' + (name ? ' ' + name : NAMES_FALLBACK);
     c.style.left = Math.min(x, TX + TW - 40) + 'px'; c.style.top = (y - 70) + 'px';
-    stage.appendChild(c); setTimeout(() => c.remove(), 1500);
+    content.appendChild(c); setTimeout(() => c.remove(), 1500);
     o.cnt.classList.add('bump'); setTimeout(() => o.cnt.classList.remove('bump'), 260);
   }
 
@@ -185,11 +198,11 @@
       f++;
       if (f <= 150) {
         const n = Math.max(6, Math.round(26 * q));
-        for (let i = 0; i < n; i++) spawn(Math.random() * 1920, 1060, (Math.random() - .5) * 2, -(5 + Math.random() * 7), 30 + Math.random() * 30, 70 + Math.random() * 50, ['gold', 'red', 'teal', 'gold'][Math.floor(Math.random() * 4)]);
+        for (let i = 0; i < n; i++) spawn(Math.random() * SX - OX, 1060 + OY, (Math.random() - .5) * 2, -(5 + Math.random() * 7), 30 + Math.random() * 30, 70 + Math.random() * 50, ['gold', 'red', 'teal', 'gold'][Math.floor(Math.random() * 4)]);
         if (f % 12 === 0) burst(300 + Math.random() * 1320, 420 + Math.random() * 300, 40, ['gold', 'red', 'teal'][Math.floor(Math.random() * 3)], 9);
       } else if (f % 5 === 0) {
         const n = Math.max(2, Math.round(8 * q));
-        for (let i = 0; i < n; i++) spawn(Math.random() * 1920, 1060, (Math.random() - .5) * 1.5, -(3 + Math.random() * 4), 24 + Math.random() * 20, 60 + Math.random() * 40, ['gold', 'red'][Math.floor(Math.random() * 2)]);
+        for (let i = 0; i < n; i++) spawn(Math.random() * SX - OX, 1060 + OY, (Math.random() - .5) * 1.5, -(3 + Math.random() * 4), 24 + Math.random() * 20, 60 + Math.random() * 40, ['gold', 'red'][Math.floor(Math.random() * 2)]);
         if (f % 60 === 0) burst(300 + Math.random() * 1320, 420 + Math.random() * 300, 28, ['gold', 'red', 'teal'][Math.floor(Math.random() * 3)], 8);
       }
     }, 40);
@@ -234,7 +247,9 @@
       if (o.clTxt !== lt) { o.cl.textContent = lt; o.clTxt = lt; }
     });
 
-    ctx.clearRect(0, 0, 1920, 1080);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ctx.setTransform(1, 0, 0, 1, OX, OY);
     ctx.globalCompositeOperation = 'lighter';
     if (!celeOn) {
       order.forEach(o => {
@@ -250,7 +265,7 @@
         if (Math.random() < .35 * q) spawn(x0 + Math.random() * o.w, top, (Math.random() - .5) * 1.2, -(2 + Math.random() * 3), 5 + Math.random() * 4, 70 + Math.random() * 60, 'ember', true);
       });
       const g = Math.round(3 * q);
-      for (let i = 0; i < g; i++) spawn(Math.random() * 1920, 1052, (Math.random() - .5) * .8, -(.8 + Math.random() * 1.5), 26 + Math.random() * 26, 40 + Math.random() * 26, Math.random() < .75 ? 'red' : 'gold', false);
+      for (let i = 0; i < g; i++) spawn(Math.random() * SX - OX, 1052 + OY, (Math.random() - .5) * .8, -(.8 + Math.random() * 1.5), 26 + Math.random() * 26, 40 + Math.random() * 26, Math.random() < .75 ? 'red' : 'gold', false);
     }
     for (let i = P.length - 1; i >= 0; i--) {
       const p = P[i]; p.l++;
