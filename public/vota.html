@@ -3,33 +3,42 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<meta name="theme-color" content="#050506" />
+<meta name="theme-color" content="#0a0403" />
 <title>Tribu Gastro Pub — Vota tu canción</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="theme.css" />
-<link rel="stylesheet" href="client.css" />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vota.css" />
 </head>
-<body class="hud-grid">
+<body>
+
+<!-- Decorado tribal -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<pattern id="bandm" width="32" height="44" patternUnits="userSpaceOnUse" patternTransform="scale(.7)">
+ <rect width="32" height="44" fill="#1a0c07"/>
+ <path d="M2 4H14L8 17Z" fill="#c98a3a"/><path d="M18 4H30L24 17Z" fill="#7a4d1f"/>
+ <path d="M0 40H16V27H32V40" fill="none" stroke="#e08a2b" stroke-width="3"/>
+ <rect x="20" y="31" width="5" height="5" transform="rotate(45 22.5 33.5)" fill="#c98a3a"/>
+</pattern></defs></svg>
+<svg id="sun" class="sun" viewBox="-560 -560 1120 1120" aria-hidden="true"></svg>
+<div class="embers" id="embers" aria-hidden="true"></div>
+<div class="band top" aria-hidden="true"><svg><rect width="100%" height="100%" fill="url(#bandm)"/></svg></div>
+<div class="band bot" aria-hidden="true"><svg><rect width="100%" height="100%" fill="url(#bandm)"/></svg></div>
 
 <!-- ============ PANTALLA DE BIENVENIDA ============ -->
 <section id="welcome" class="screen active">
   <div class="w-top">
-    <div class="brand">
-      <img class="brand-logo" src="/img/logo.png" alt="TRIBU Gastro Pub" />
-    </div>
-    <div class="brand-sub">LIVE&nbsp;VOTE</div>
+    <img class="w-logo" src="/img/logo.png" alt="TRIBU Gastro Pub" />
+    <div class="w-tag">VOTA EN VIVO</div>
   </div>
 
   <div class="w-hero">
-    <div class="w-ring gpu"></div>
-    <h1>¿Cómo te<br><span>llamas?</span></h1>
+    <h1 class="fire-text">¿Cómo te<br>llamas?</h1>
     <p class="w-lead">Tu voto mueve la pista. Entra a la tribu.</p>
   </div>
 
   <form id="nameForm" class="w-form" autocomplete="off">
     <input id="nameInput" type="text" maxlength="18" placeholder="Escribe tu nombre" required />
-    <button class="btn" type="submit">ENTRAR&nbsp;▸</button>
+    <button class="btn" type="submit">Entrar&nbsp;▸</button>
   </form>
   <p class="w-foot">Vota las veces que quieras · cada minuto</p>
 </section>
@@ -37,9 +46,7 @@
 <!-- ============ PANEL DE VOTACIÓN (GAMEPAD) ============ -->
 <section id="vote" class="screen">
   <header class="v-head">
-    <div class="brand small">
-      <img class="brand-logo" src="/img/logo.png" alt="TRIBU Gastro Pub" />
-    </div>
+    <img class="v-logo" src="/img/logo.png" alt="TRIBU Gastro Pub" />
     <div class="v-user">HOLA · <b id="userName">—</b> <a href="#" id="changeNameLink" class="change-name">cambiar</a></div>
   </header>
 
@@ -57,12 +64,13 @@
 <section id="done" class="screen">
   <div class="done-box gpu">
     <div id="doneIcon" class="done-icon">✓</div>
-    <h2 id="doneTitle">¡Voto registrado!</h2>
+    <h2 id="doneTitle" class="fire-text">¡Voto registrado!</h2>
     <p id="doneText">Tu voto ya está en la pantalla del bar.</p>
     <div id="myPick" class="my-pick"></div>
     <div id="cooldownBox" class="cooldown-box">
       <div class="cooldown-label">PUEDES VOTAR DE NUEVO EN</div>
-      <div id="cooldownTimer" class="cooldown-timer">05:00</div>
+      <div id="cooldownTimer" class="cooldown-timer">1:00</div>
+      <div class="cd-bar"><i id="cdBar"></i></div>
       <div id="cooldownTip" class="cooldown-tip"></div>
     </div>
   </div>
@@ -76,6 +84,6 @@
 <script src="categories.js"></script>
 <script src="errors.js"></script>
 <script src="client.js"></script>
-  <div class="dev-credit">© 2026 Desarrollado por <b>QUEHAY LABS SAS</b></div>
+<div class="dev-credit">© 2026 Desarrollado por <b>QUEHAY LABS SAS</b></div>
 </body>
 </html>

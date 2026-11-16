@@ -14,6 +14,40 @@
     done: $('#done')
   };
   const pad = $('#pad');
+
+  // ---- Decorado tribal: mandala solar y brasas (ligero, solo CSS/SVG) ----
+  (function decorate() {
+    const sun = $('#sun');
+    if (sun) {
+      let s = '<g fill="none" stroke="#c98a3a" stroke-width="2">';
+      [520, 470, 380, 300, 200].forEach(r => { s += '<circle r="' + r + '"/>'; });
+      s += '<circle r="425" stroke-dasharray="7 16" stroke-width="3"/></g><g fill="#c98a3a">';
+      for (let i = 0; i < 30; i++) {
+        s += '<g transform="rotate(' + (i * 12) + ')"><path d="M-18 -380 L0 -470 L18 -380Z"/><path d="M-9 -300 L0 -345 L9 -300Z" opacity=".7"/></g>';
+      }
+      const pts = [];
+      for (let i = 0; i < 32; i++) {
+        const r = i % 2 ? 150 : 230, a = i * Math.PI / 16;
+        pts.push((Math.cos(a) * r).toFixed(1) + ',' + (Math.sin(a) * r).toFixed(1));
+      }
+      sun.innerHTML = s + '</g><polygon points="' + pts.join(' ') + '" fill="none" stroke="#e08a2b" stroke-width="3"/>';
+    }
+    const box = $('#embers');
+    if (box && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      for (let i = 0; i < 14; i++) {
+        const e = document.createElement('span');
+        e.className = 'ember';
+        const dur = 6 + Math.random() * 7;
+        e.style.left = Math.random() * 100 + '%';
+        e.style.setProperty('--dx', (-50 + Math.random() * 100) + 'px');
+        e.style.width = e.style.height = (2 + Math.random() * 4) + 'px';
+        e.style.animationDuration = dur + 's';
+        e.style.animationDelay = (-Math.random() * dur) + 's';
+        box.appendChild(e);
+      }
+    }
+  })();
+
   function show(name) {
     Object.values(screens).forEach(s => s.classList.remove('active'));
     screens[name].classList.add('active');
@@ -245,8 +279,10 @@
       stopCooldownTicker();
     }
   }
+  let cooldownTotal = 60000;
   function startCooldownTicker() {
     stopCooldownTicker();
+    cooldownTotal = Math.max(60000, retryAt - Date.now());
     tickCooldown();
     cooldownInterval = setInterval(tickCooldown, 1000);
   }
@@ -267,6 +303,8 @@
     const mm = Math.floor(remaining / 60000);
     const ss = Math.floor((remaining % 60000) / 1000);
     $('#cooldownTimer').textContent = `${mm}:${String(ss).padStart(2, '0')}`;
+    const bar = $('#cdBar');
+    if (bar) bar.style.transform = 'scaleX(' + Math.max(0, Math.min(1, remaining / cooldownTotal)) + ')';
   }
   function onCooldownEnd() {
     if (!screens.done.classList.contains('active')) return; // el usuario ya navegó a otro lado
