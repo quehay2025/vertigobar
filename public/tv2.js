@@ -169,6 +169,7 @@
 
   // ---------------------------------------------------------------- EFECTOS
   const NAMES_FALLBACK = '';
+  const chipN = new Map();
   function voteFx(itemId, name) {
     const o = objs.get(itemId);
     if (!o || o.rank >= MAXROWS) return;
@@ -177,9 +178,38 @@
     burst(x, y, 14, o.rank === 2 ? 'teal' : o.rank === 1 ? 'red' : 'gold', 5);
     const c = document.createElement('div'); c.className = 'chip';
     c.textContent = '+1' + (name ? ' ' + name : NAMES_FALLBACK);
-    c.style.left = Math.min(x, TX + TW - 40) + 'px'; c.style.top = (y - 70) + 'px';
-    content.appendChild(c); setTimeout(() => c.remove(), 1500);
+    const stack = chipN.get(itemId) || 0; chipN.set(itemId, stack + 1);
+    c.style.left = Math.max(TX + 120, Math.min(x, TX + TW - 120)) + 'px';
+    c.style.top = (y - 76 - (stack % 3) * 54) + 'px';
+    content.appendChild(c);
+    setTimeout(() => { c.remove(); chipN.set(itemId, Math.max(0, (chipN.get(itemId) || 1) - 1)); }, 10000);
     o.cnt.classList.add('bump'); setTimeout(() => o.cnt.classList.remove('bump'), 260);
+  }
+
+  // ------------------------------------------------------------ SUPERACIÓN
+  let pumT = 0;
+  function overtakeFx(up, down, newRank) {
+    if (celeOn || !up) return;
+    const pum = $('#pum');
+    const lead = newRank === 0;
+    pum.classList.toggle('lead', lead);
+    $('#pumT').textContent = lead ? '¡NUEVO LÍDER!' : '¡PUM!';
+    $('#pumT').style.fontSize = lead ? '170px' : '';
+    $('#pumA').innerHTML = '<b>' + esc(up.title).toUpperCase() + '</b> SUPERA A ' + (down ? esc(down.title).toUpperCase() : 'LA ANTERIOR');
+    $('#pumB').textContent = lead ? 'LA TRIBU CAMBIA DE LÍDER' : 'SUBE AL PUESTO ' + (newRank + 1);
+    pum.classList.remove('on'); void pum.offsetWidth; pum.classList.add('on');
+    clearTimeout(pumT); pumT = setTimeout(() => pum.classList.remove('on'), 5100);
+    content.classList.remove('shake'); void content.offsetWidth; content.classList.add('shake');
+    setTimeout(() => content.classList.remove('shake'), 650);
+    // ondas y fuego en las dos filas que se cruzan
+    [up, down].forEach((o, k) => {
+      if (!o) return;
+      const y = SLOTY[Math.min(newRank + k, MAXROWS - 1)] + SLOTH[Math.min(newRank + k, MAXROWS - 1)] / 2;
+      for (let i = 0; i < 4; i++) RINGS.push({ x: TX + 300 + i * 260, y, r: 6 + i * 8, a: 1 });
+      burst(TX + 300, y, 60, k ? 'red' : 'gold', 11);
+      burst(TX + TW - 200, y, 60, k ? 'red' : 'teal', 11);
+    });
+    for (let i = 0; i < 4; i++) setTimeout(() => burst(300 + Math.random() * 1320, 300 + Math.random() * 500, 50, ['gold', 'red', 'teal'][i % 3], 10), 250 + i * 330);
   }
 
   // ------------------------------------------------------------ CELEBRACIÓN
@@ -322,10 +352,12 @@
     if (name) say('<b>' + esc(name).toUpperCase() + '</b> VOTÓ POR<b>' + esc(itemTitle).toUpperCase() + '</b>');
   });
 
-  socket.on('rebase_ocurrido', ({ state: s, subioId }) => {
+  socket.on('rebase_ocurrido', ({ state: s, subioId, antes, despues }) => {
     state = s; sync();
     const o = objs.get(subioId);
     if (!o) return;
+    const a = (antes || []).indexOf(subioId), d = (despues || []).indexOf(subioId);
+    if (d >= 0 && d < a) overtakeFx(o, objs.get(despues[d + 1]), d);
     if (o.rank === 0) say('LA TRIBU CAMBIA DE LÍDER<b>·</b>' + esc(o.title).toUpperCase());
     else say('<b>▲</b>' + esc(o.title).toUpperCase() + ' SUBE AL PUESTO ' + (o.rank + 1));
   });
