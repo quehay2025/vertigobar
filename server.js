@@ -606,8 +606,9 @@ app.get('/api/health', (req, res) => res.json({ ok: true, db: isDbEnabled(), rou
 // La experiencia de votacion en vivo cuelga de /arcade -> /vota
 app.get('/arcade', (req, res) => res.sendFile(path.join(__dirname, 'public', 'arcade.html')));
 
-app.get('/tv', (req, res) => res.sendFile(path.join(__dirname, 'public', 'tv.html')));
-app.get('/tv2', (req, res) => res.sendFile(path.join(__dirname, 'public', 'tv2.html')));
+// /tv es la pantalla oficial (diseño tribal). /tv2 queda como alias y /tv-arcade conserva el diseño anterior.
+app.get(['/tv', '/tv2'], (req, res) => res.sendFile(path.join(__dirname, 'public', 'tv2.html')));
+app.get('/tv-arcade', (req, res) => res.sendFile(path.join(__dirname, 'public', 'tv.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/artist', (req, res) => res.sendFile(path.join(__dirname, 'public', 'artist.html')));
 app.get('/artista', (req, res) => res.sendFile(path.join(__dirname, 'public', 'artist.html')));

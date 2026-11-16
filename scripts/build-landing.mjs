@@ -24,7 +24,7 @@ const ASSETS = [
 // Se sobreescribe con ARCADE_ORIGIN si algún día cambia el subdominio.
 const ARCADE = process.env.ARCADE_ORIGIN || 'https://arcade.tribugastropub.com';
 
-const REDIRECTS = ['vota', 'votar', 'arcade', 'tv', 'tv2', 'mesa', 'admin', 'artist', 'artista']
+const REDIRECTS = ['vota', 'votar', 'arcade', 'tv', 'tv2', 'tv-arcade', 'mesa', 'admin', 'artist', 'artista']
   .map(r => `/${r}    ${ARCADE}/${r}    302`)
   .join('\n');
 

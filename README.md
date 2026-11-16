@@ -39,7 +39,7 @@ mano [`public/categories.js`](public/categories.js) (browser).
   directo, sin haber escaneado un QR.
 - **`/vota`** (o `/votar`) — Vista Cliente (mobile-first): bienvenida + gamepad táctil con
   estados Normal / Presionado / Bloqueado. A esto apunta el QR de la TV.
-- **`/tv2`** — Pantalla del Bar con tema **tribal / fuego** (misma lógica y mismos datos que `/tv`):
+- **`/tv`** (y su alias `/tv2`) — Pantalla oficial del Bar con tema **tribal / fuego**. El diseño arcade anterior sigue en `/tv-arcade`:
   ranking con fuego por puesto (dorado 1º, rojo 2º, turquesa 3º), golpe de tambor por cada voto y
   celebración "LA TRIBU HA HABLADO" de 30 s. Escenario fijo 1920x1080 escalado a cualquier pantalla;
   la cantidad de partículas baja sola si la TV no llega a 30 fps.
@@ -156,7 +156,7 @@ Alternativas equivalentes: Railway, Fly.io, o cualquier VPS con `node server.js`
 
 
 ## La mesa reina (consumo por mesa)
-Cada cierto rato (3 min) la pantalla `/tv2` pasa del llamado de la tribu a **LA MESA REINA**: el ranking de las mesas que más consumen, leído de la app KI. Cuando una mesa le quita el primer lugar a otra sale **NUEVA MESA REINA** al instante, y una celebración de canción siempre tiene prioridad.
+Cada cierto rato (3 min) la pantalla `/tv` pasa del llamado de la tribu a **LA MESA REINA**: el ranking de las mesas que más consumen, leído de la app KI. Cuando una mesa le quita el primer lugar a otra sale **NUEVA MESA REINA** al instante, y una celebración de canción siempre tiene prioridad.
 
 - **Datos:** el servidor consulta `KI_API_URL` (solo lectura, `Authorization: Bearer KI_API_KEY`, https) cada `MESAS_POLL_MS`. La respuesta debe ser `{"mesas":[{"mesa":"12","total":134.5}]}`. Se valida estrictamente, se descarta lo raro y **el total real nunca sale del servidor**: a las pantallas solo llega el % frente a la mesa líder. Si KI falla, la escena se oculta y el show de música sigue igual.
 - **Nombre de mesa:** en `/admin` > LA MESA REINA se generan los enlaces firmados (uno por mesa) para imprimir su QR. Al escanearlo, la mesa se pone nombre en `/mesa` (con el filtro de groserías). Un enlace falso no sirve.
