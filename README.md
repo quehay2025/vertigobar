@@ -39,6 +39,10 @@ mano [`public/categories.js`](public/categories.js) (browser).
   directo, sin haber escaneado un QR.
 - **`/vota`** (o `/votar`) — Vista Cliente (mobile-first): bienvenida + gamepad táctil con
   estados Normal / Presionado / Bloqueado. A esto apunta el QR de la TV.
+- **`/tv2`** — Pantalla del Bar con tema **tribal / fuego** (misma lógica y mismos datos que `/tv`):
+  ranking con fuego por puesto (dorado 1º, rojo 2º, turquesa 3º), golpe de tambor por cada voto y
+  celebración "LA TRIBU HA HABLADO" de 30 s. Escenario fijo 1920x1080 escalado a cualquier pantalla;
+  la cantidad de partículas baja sola si la TV no llega a 30 fps.
 - **`/tv`** — Pantalla del Bar (16:9): 70 % ranking en vivo con **fuego real por puesto**
   (naranja 1º, azul 2º, verde 3º); 30 % QR, artista en vivo y próximo show.
 - **`/artista`** — Panel del artista: entra con su **código personal de 6 dígitos**, gestiona su

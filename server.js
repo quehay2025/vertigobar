@@ -415,6 +415,7 @@ app.get('/api/health', (req, res) => res.json({ ok: true, db: isDbEnabled(), rou
 app.get('/arcade', (req, res) => res.sendFile(path.join(__dirname, 'public', 'arcade.html')));
 
 app.get('/tv', (req, res) => res.sendFile(path.join(__dirname, 'public', 'tv.html')));
+app.get('/tv2', (req, res) => res.sendFile(path.join(__dirname, 'public', 'tv2.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/artist', (req, res) => res.sendFile(path.join(__dirname, 'public', 'artist.html')));
 app.get('/artista', (req, res) => res.sendFile(path.join(__dirname, 'public', 'artist.html')));
