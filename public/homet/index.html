@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script>window.__FORCE="open";</script>
+<meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TRIBU Gastro Pub</title>
+<meta name="description" content="TRIBU Gastro Pub. Comida, fuego y música en vivo. Abrimos el jueves 26 de noviembre a las 19:00.">
+<meta name="theme-color" content="#050302">
+<meta property="og:title" content="TRIBU Gastro Pub">
+<meta property="og:description" content="Abrimos el jueves 26 de noviembre a las 19:00. Aquí se junta la tribu.">
+<meta property="og:image" content="/img/logo.png">
+<link rel="icon" href="/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/tribu/css/style.css">
+<link rel="stylesheet" href="/tribu/css/landing.css">
+</head>
+<body>
+
+<!-- Patron tribal reutilizable (bandas) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <pattern id="band" width="32" height="44" patternUnits="userSpaceOnUse">
+    <rect width="32" height="44" fill="#1a0c07"/>
+    <path d="M2 4H14L8 17Z" fill="#c98a3a"/><path d="M18 4H30L24 17Z" fill="#7a4d1f"/>
+    <path d="M0 40H16V27H32V40" fill="none" stroke="#e08a2b" stroke-width="3"/>
+    <rect x="20" y="31" width="5" height="5" transform="rotate(45 22.5 33.5)" fill="#c98a3a"/>
+  </pattern>
+  <symbol id="i-ig" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></symbol>
+  <symbol id="i-fb" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-tt" viewBox="0 0 24 24"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5M14 3c.4 2.6 2.2 4.4 5 4.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-wa" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-ph" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-ml" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 6l10 7 10-7" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-joy" viewBox="0 0 24 24"><circle cx="12" cy="6" r="3" fill="currentColor"/><path d="M12 9v6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M4 18a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" fill="currentColor"/><circle cx="8" cy="18.5" r="1" fill="#1a0a04"/><circle cx="12" cy="18.5" r="1" fill="#1a0a04"/><circle cx="16" cy="18.5" r="1" fill="#1a0a04"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10.5 18.5h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-ck" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+</defs></svg>
+
+<!-- ======================= LANDING: PROXIMAMENTE + CUENTA REGRESIVA ======================= -->
+<div id="landing">
+  <div class="layer" id="bgLocal"></div>
+  <div class="layer" id="glow"></div>
+  <div class="layer curtain" id="curtain" aria-hidden="true">
+    <div class="panel left" id="panelL"></div>
+    <div class="panel right" id="panelR"></div>
+    <div class="valance"></div>
+  </div>
+  <div class="layer" id="scrim"></div>
+  <div class="layer" id="vignette"></div>
+  <main class="stage">
+    <img id="logo" src="/img/logo.png" alt="TRIBU Gastro Pub">
+    <div class="logo-fallback" id="logoFallback" hidden>TRIBU<small>Gastro Pub</small></div>
+    <div class="sign-rig" id="signRig">
+      <div class="cords"><span></span><span></span></div>
+      <div class="sign">
+        <h1>Próximamente</h1>
+        <p>Muy pronto en la ciudad</p>
+        <div class="cd" role="timer" aria-label="Tiempo restante para la apertura">
+          <div><b id="cd-d">00</b><small>Días</small></div><i>:</i>
+          <div><b id="cd-h">00</b><small>Horas</small></div><i>:</i>
+          <div><b id="cd-m">00</b><small>Min</small></div><i>:</i>
+          <div><b id="cd-s">00</b><small>Seg</small></div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer class="foot"><a href="#arcade-link" id="arcadeLink">Zona Arcade</a></footer>
+  <div class="dev-credit">&copy; 2026 Desarrollado por <b>QUEHAY LABS</b></div>
+</div>
+
+<!-- ======================= VISTA 2: BIENVENIDA ======================= -->
+<div id="view-welcome" class="view" hidden>
+
+  <header class="nav" id="nav">
+    <a href="#inicio" class="nav-brand"><img src="/img/logo.png" alt="TRIBU Gastro Pub"></a>
+    <button class="nav-toggle" id="navToggle" aria-label="Abrir menú de navegación" aria-expanded="false"><span></span><span></span><span></span></button>
+    <nav class="nav-links" id="navLinks">
+      <a href="#nosotros">Nosotros</a>
+      <a href="#carta">Menú</a>
+      <a href="#navidad" data-needs="christmas">Navidad</a>
+      <a href="#arcade">Vota</a>
+      <a href="#galeria" data-needs="gallery">Galería</a>
+      <a href="#reservas">Reservas</a>
+      <a href="#contacto">Contacto</a>
+      <a href="#carta" class="btn btn-fire btn-sm" data-menu-link>Ver menú</a>
+    </nav>
+  </header>
+
+  <!-- PORTADA -->
+  <section id="inicio" class="hero">
+    <svg class="hero-sun" viewBox="-560 -560 1120 1120" aria-hidden="true" data-mandala></svg>
+    <canvas class="hero-embers" aria-hidden="true"></canvas>
+    <div class="hero-in">
+      <img class="hero-logo" src="/img/logo.png" alt="TRIBU Gastro Pub">
+      <p class="kicker">Bienvenidos a la tribu</p>
+      <h1 class="fire-text hero-title">TRIBU GASTRO PUB</h1>
+      <p class="hero-tag" id="heroTag"></p>
+      <div class="cta-row">
+        <a href="#carta" class="btn btn-fire" data-menu-link>Ver menú</a>
+        <a href="#reservas" class="btn btn-ghost">Reserva con nosotros</a>
+        <a href="#contacto" class="btn btn-ghost">Contáctanos</a>
+      </div>
+      <a href="#" class="arcade-fire" id="heroArcade"><span class="embers" id="arcEmbers" aria-hidden="true"></span>
+        <span class="arc-btn"><svg class="ic" viewBox="0 0 24 24"><use href="#i-joy"/></svg><span><b class="fire-text">TRIBU ARCADE</b><em>Juega y vota</em></span></span></a>
+    </div>
+    <div class="band bottom"><svg><rect width="100%" height="100%" fill="url(#band)"/></svg></div>
+  </section>
+
+  <!-- QUIENES SOMOS -->
+  <section id="nosotros" class="sec">
+    <div class="wrap">
+      <p class="kicker">Nosotros</p>
+      <h2 class="h2" id="aboutTitle"></h2>
+      <div class="about-grid">
+        <div class="about-text" id="aboutText"></div>
+        <div class="about-cards" id="aboutCards"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENU -->
+  <section id="carta" class="sec sec-alt">
+    <div class="wrap center">
+      <p class="kicker">La carta</p>
+      <h2 class="h2">Lo que sale de nuestra cocina y nuestra barra</h2>
+      <p class="lead">Mira el menú completo, con precios y combos, desde tu celular.</p>
+      <a href="#" class="btn btn-fire btn-lg" data-menu-link target="_blank" rel="noopener">Ver menú</a>
+    </div>
+  </section>
+
+  <!-- CENAS NAVIDEÑAS -->
+  <section id="navidad" class="sec">
+    <div class="wrap">
+      <p class="kicker">Temporada</p>
+      <h2 class="h2" id="xmasTitle"></h2>
+      <p class="lead" id="xmasIntro"></p>
+      <div class="xmas-grid" id="xmasGrid"></div>
+      <div class="cta-row left">
+        <a class="btn btn-fire" href="#reservas">Reserva tu cena</a>
+        <a class="btn btn-ghost" href="#carta" data-menu-link>Ver menú completo</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCADE / VOTACION -->
+  <section id="arcade" class="sec">
+    <div class="wrap arcade">
+      <div>
+        <p class="kicker">Zona Arcade</p>
+        <h2 class="h2">La pista la mueve la tribu</h2>
+        <p class="lead">Entra desde tu mesa, vota tu canción y mira en la pantalla cómo sube tu favorita. Cada voto cuenta.</p>
+        <a id="arcadeBtn" class="btn btn-fire" href="#" target="_blank" rel="noopener">Votar ahora</a>
+      </div>
+      <div class="arcade-art" aria-hidden="true"><svg viewBox="-560 -560 1120 1120" data-mandala></svg></div>
+    </div>
+  </section>
+
+  <!-- GALERIA -->
+  <section id="galeria" class="sec sec-alt">
+    <div class="wrap">
+      <p class="kicker">Galería</p>
+      <h2 class="h2">Así se vive</h2>
+      <div class="gallery" id="gallery"></div>
+    </div>
+  </section>
+
+  <!-- RESERVAS -->
+  <section id="reservas" class="sec">
+    <div class="wrap res">
+      <div>
+        <p class="kicker">Reservas</p>
+        <h2 class="h2">Asegura tu reserva</h2>
+        <p class="lead">Hazla más rápida y fácil: reserva desde la app y ahorra tiempo.</p>
+        <div class="hours" id="hoursBlock" hidden>
+          <h3><svg class="ic"><use href="#i-ck"/></svg> Horarios</h3>
+          <ul id="hoursList"></ul>
+        </div>
+      </div>
+      <div class="res-col">
+        <div class="res-app">
+          <span class="res-badge">La forma más rápida</span>
+          <h3>Reserva en la app</h3>
+          <p>Asegura tu lugar en pocos pasos. Ahorra tiempo y reserva desde la app.</p>
+          <ul class="res-perks"><li>Más rápido</li><li>Más fácil</li><li>Tu mesa asegurada</li></ul>
+          <a class="res-app-btn" id="resApp" href="#" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24"><use href="#i-phone"/></svg><span>Reservar en la app</span></a>
+        </div>
+        <details class="res-contact" id="resContact">
+          <summary><span>¿Prefieres que te contactemos?</span><small>Déjanos aquí tu información</small></summary>
+          <form class="form" id="resForm" novalidate>
+            <label>Nombre<input name="nombre" required autocomplete="name" placeholder="Tu nombre"></label>
+            <label>Teléfono o WhatsApp<input name="telefono" type="tel" required autocomplete="tel" placeholder="098 000 0000"></label>
+            <label>Mensaje (opcional)<textarea name="notas" rows="3" placeholder="Cuéntanos qué necesitas: reserva, evento, cumpleaños..."></textarea></label>
+            <button class="btn btn-ghost" type="submit">Enviar mis datos</button>
+            <p class="form-msg" id="resMsg" role="status"></p>
+          </form>
+        </details>
+      </div>
+      <!-- RESERVA POR WHATSAPP (desactivada por ahora; para reactivarla, ver bloque comentado en js/main.js)
+      <form class="card form" id="resForm" novalidate>
+        <label>Nombre<input name="nombre" required autocomplete="name" placeholder="Tu nombre"></label>
+        <div class="two">
+          <label>Fecha<input name="fecha" type="date" required></label>
+          <label>Hora<input name="hora" type="time" required></label>
+        </div>
+        <label>Personas<input name="personas" type="number" min="1" max="30" value="2" required></label>
+        <label>Comentarios (opcional)<textarea name="notas" rows="3" placeholder="Cumpleaños, zona preferida, etc."></textarea></label>
+        <button class="btn btn-fire" type="submit"><svg class="ic"><use href="#i-wa"/></svg> Reservar por WhatsApp</button>
+        <p class="form-msg" id="resMsg" role="status"></p>
+      </form>
+      -->
+    </div>
+  </section>
+
+  <!-- CONTACTO -->
+  <section id="contacto" class="sec sec-alt">
+    <div class="wrap">
+      <p class="kicker">Contáctanos</p>
+      <h2 class="h2">Hablemos</h2>
+      <div class="contact-grid">
+        <ul class="contact-list" id="contactList"></ul>
+        <div class="map" id="mapBox" hidden></div>
+      </div>
+      <div class="cta-row left">
+        <a id="waBtn" class="btn btn-fire" href="#" target="_blank" rel="noopener"><svg class="ic"><use href="#i-wa"/></svg> Escríbenos por WhatsApp</a>
+      </div>
+      <div class="social-row left" data-social></div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="band"><svg><rect width="100%" height="100%" fill="url(#band)"/></svg></div>
+    <div class="foot-in">
+      <img src="/img/logo.png" alt="TRIBU Gastro Pub">
+      <p>&copy; 2026 TRIBU Gastro Pub. Todos los derechos reservados.</p>
+      <p class="dev">Desarrollado por QUEHAY LABS</p>
+    </div>
+  </footer>
+
+  <!-- WhatsApp flotante -->
+  <a id="waFloat" class="wa-float" href="#" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp" hidden><svg><use href="#i-wa"/></svg></a>
+</div>
+
+<script src="/tribu/js/config.js"></script>
+<script src="/tribu/js/main.js"></script>
+<script src="/tribu/js/landing.js"></script>
+</body>
+</html>

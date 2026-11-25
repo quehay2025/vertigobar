@@ -4,20 +4,33 @@
    Todo lo demás (votación, TV, admin) sigue en el servicio Node, porque
    necesita WebSockets y base de datos.
    ========================================================================= */
-import { mkdir, copyFile, rm, writeFile, stat } from 'node:fs/promises';
+import { mkdir, copyFile, rm, writeFile, stat, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.join(root, 'dist');
 
-// Solo lo que referencia index.html: nada de vota.html, tv.html ni client.js
+// Solo lo que necesita el sitio: portada (cuenta regresiva + cortinas), home
+// del restaurante (public/tribu/**) y /homet (el home directo, para pruebas).
+// Nada de vota.html, tv.html ni client.js.
+async function walk(dir, base = dir) {
+  const out = [];
+  for (const e of await readdir(dir, { withFileTypes: true })) {
+    const full = path.join(dir, e.name);
+    if (e.isDirectory()) out.push(...await walk(full, base));
+    else out.push(path.relative(base, full).split(path.sep).join('/'));
+  }
+  return out;
+}
 const ASSETS = [
   'index.html',
+  'homet/index.html',
   'home.css',
   'home.js',
   'img/logo.png',
-  'img/local.jpg'
+  'img/local.jpg',
+  ...(await walk(path.join(root, 'public', 'tribu'))).map(f => 'tribu/' + f)
 ];
 
 // A dónde se manda a quien llegue con un enlace o QR viejo del dominio raíz.
@@ -37,7 +50,7 @@ for (const rel of ASSETS) {
 }
 
 // Los QR ya impresos apuntan al dominio raíz: que sigan funcionando.
-await writeFile(path.join(dist, '_redirects'), REDIRECTS + '\n');
+await writeFile(path.join(dist, '_redirects'), REDIRECTS + '\n/homet    /homet/index.html    200\n');
 
 let total = 0;
 for (const rel of ASSETS) total += (await stat(path.join(dist, rel))).size;
